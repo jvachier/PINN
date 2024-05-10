@@ -1,8 +1,8 @@
 /*
- * Author: Jeremy Vachier
- * Purpose: ABP 3D confine in a square using an Euler-Mayurama algorithm
+ * Author: Jeremy Vachier - Physics Informed Neural Networks
+ * Purpose: ABP 1D using an Euler-Mayurama algorithm
  * Language: C++
- * Date: 2023
+ * Date: 2024
  * Compilation line to use pragma: g++ name.cpp -fopenmp -o name.o (on mac run g++-13 ; 13 latest version obtain using brew list gcc)
  * Compilation line to use pragma, simd (vectorization) and tuple: g++ -O3 -std=c++17 name.cpp -fopenmp -o name.o
  */
@@ -84,9 +84,14 @@ int main(int argc, char *argv[])
 		x, Particles,
 		generator, distribution);
 
-	check_nooverlap(
-		x, Particles, L,
-		generator, distribution);
+	// check_nooverlap(
+	// 	x, Particles, L,
+	// 	generator, distribution);
+	int time = 0;
+	print_file(
+		x,
+		Particles, time,
+		datacsv);
 	printf("Initialization done.\n");
 
 	// Time evoultion
@@ -98,9 +103,9 @@ int main(int argc, char *argv[])
 			vs, prefactor_xi_px,
 			generator, Gaussdistribution);
 
-		periodic_boundary_conditions(
-			x, Particles,
-			Wall);
+		// periodic_boundary_conditions(
+		// 	x, Particles,
+		// 	Wall);
 
 		if (time % 10 == 0 && time >= 0)
 		{
