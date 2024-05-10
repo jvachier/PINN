@@ -28,4 +28,4 @@ jobs:
         make install
     - name: Cpplint
       run: |
-        make cpplint
+        cpplint src/Simulation_Cpp/code/*.cpp

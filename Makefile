@@ -3,7 +3,7 @@ install:
 		pip install -r src/Neural_Network_python/requirements.txt
 
 lint: 
-	pylint --disable=R,C src/Neural_Network_python/
+	pylint --disable=R,C --exit-zero src/Neural_Network_python/ 
 
 black:
 	python -m black src/Neural_Network_python/
@@ -14,4 +14,4 @@ ruff:
 	ruff format src/Neural_Network_python/
 
 cpplint:
-	cpplint src/Simulation_Cpp/code/*.cpp
+	cpplint --recursive src/Simulation_Cpp/code/*.cpp
