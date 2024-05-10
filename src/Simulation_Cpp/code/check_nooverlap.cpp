@@ -3,7 +3,7 @@
 using namespace std;
 
 void check_nooverlap(
-	double *x, double *y, double *z, int Particles,
+	double *x, int Particles,
 	int L,
 	default_random_engine &generator, uniform_real_distribution<double> &distribution)
 {
@@ -16,13 +16,12 @@ void check_nooverlap(
 		{
 			if (k != j)
 			{
-				R = sqrt((x[j] - x[k]) * (x[j] - x[k]) + (y[j] - y[k]) * (y[j] - y[k]) + (z[j] - z[k]) * (z[j] - z[k]));
+				R = sqrt((x[j] - x[k]) * (x[j] - x[k]));
 				count = 0;
 				while (R < 1.5 * L)
 				{
 					x[j] = distribution(generator);
-					y[j] = distribution(generator);
-					R = sqrt((x[j] - x[k]) * (x[j] - x[k]) + (y[j] - y[k]) * (y[j] - y[k]) + (z[j] - z[k]) * (z[j] - z[k]));
+					R = sqrt((x[j] - x[k]) * (x[j] - x[k]));
 					count += 1;
 					if (count > 3)
 					{
