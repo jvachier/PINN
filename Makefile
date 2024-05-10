@@ -14,4 +14,4 @@ ruff:
 	ruff format src/Neural_Network_python/
 
 cpplint:
-	cpplint --recursive src/Simulation_Cpp/code/*.cpp
+	cpplint src/Simulation_Cpp/code/*.cpp
