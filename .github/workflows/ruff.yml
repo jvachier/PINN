@@ -1,13 +1,17 @@
-name: Checks
+name: Ruff
 on: 
   push:
     branches:
     - main
+    paths:
+    - 'src/Neural_Network_python/**'
   pull_request:
     branches:
     - main
+    paths:
+    - 'src/Neural_Network_python/**'
 jobs:
-  pylint:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,9 +23,6 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        make install
     - name: Ruff
       run: |
         make ruff
