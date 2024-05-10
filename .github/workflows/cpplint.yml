@@ -4,12 +4,12 @@ on:
     branches:
     - main
     paths:
-    - 'src/Simulation_C++/**'
+    - 'src/Simulation_Cpp/**'
   pull_request:
     branches:
     - main
     paths:
-    - 'src/Simulation_C++/**'
+    - 'src/Simulation_Cpp/**'
 jobs:
   lint:
     runs-on: ubuntu-latest
