@@ -17,7 +17,7 @@
 #include <tuple>
 
 #include "headers/print_file.h"
-#include "headers/cylindrical_reflective_boundary_conditions.h"
+#include "headers/periodic_boundary_conditions.h"
 #include "headers/initialization.h"
 #include "headers/update_position.h"
 #include "headers/check_nooverlap.h"
@@ -45,23 +45,16 @@ int main(int argc, char *argv[])
 	omp_set_num_threads(N_thread);
 
 	// read the parameters from the file
-	double epsilon, delta, Dt, De, vs;
-	double Wall, height;
+	double delta, Dt, vs;
+	double Wall;
 	int Particles;
 	int N; // number of iterations
 
-	fscanf(parameter, "%lf\t%lf\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%d\n", &epsilon, &delta, &Particles, &Dt, &De, &vs, &Wall, &height, &N);
-	printf("%lf\t%lf\t%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%d\n", epsilon, delta, Particles, Dt, De, vs, Wall, height, N);
+	fscanf(parameter, "%lf\t%d\t%lf\t%lf\t%lf\t%d\n", &delta, &Particles, &Dt, &vs, &Wall, &N);
+	printf("%lf\t%d\t%lf\t%lf\t%lf\t%d\n", delta, Particles, Dt, vs, Wall, N);
 
 	// Position
 	double *x = (double *)malloc(Particles * sizeof(double)); // x-position
-	double *y = (double *)malloc(Particles * sizeof(double)); // y-position
-	double *z = (double *)malloc(Particles * sizeof(double)); // z-position
-
-	// Orientation
-	double *ex = (double *)malloc(Particles * sizeof(double)); // ex-orientation
-	double *ey = (double *)malloc(Particles * sizeof(double)); // ey-orientation
-	double *ez = (double *)malloc(Particles * sizeof(double)); // ez-orientation
 
 	// parameters
 	const int L = 1.0; // particle size
@@ -74,37 +67,25 @@ int main(int argc, char *argv[])
 	normal_distribution<double> Gaussdistribution(0.0, 1.0);
 	// Distribution Uniform for initialization
 	uniform_real_distribution<double> distribution(-Wall, Wall);
-	// Uniform distribution for the orientation
-	uniform_real_distribution<double> distribution_e(0.0, 1.0);
 
 	double xi_px = 0.0; // noise for x-position
-	double xi_py = 0.0; // noise for y-position
-	double xi_pz = 0.0; // noise for z-position
-	double xi_ex = 0.0; // noise ex ortientation
-	double xi_ey = 0.0; // noise ey ortientation
-	double xi_ez = 0.0; // noise ez ortientation
 
 	// double phi = 0.0;
-	double prefactor_e = sqrt(2.0 * delta * De);
 	double prefactor_xi_px = sqrt(2.0 * delta * Dt);
-	double prefactor_xi_py = sqrt(2.0 * delta * Dt);
-	double prefactor_xi_pz = sqrt(2.0 * delta * Dt);
-	double prefactor_interaction = epsilon * 48.0;
-	double r = 5.0 * L;
 
 	// Open MP to get execution time
 	double itime, ftime, exec_time;
 	itime = omp_get_wtime();
 
-	fprintf(datacsv, "Particles,x-position,y-position,z-position,ex-orientation,ey-orientation,ez-orientation,time\n");
+	fprintf(datacsv, "Particles,x-position,time\n");
 
 	// initialization position and activity
 	initialization(
-		x, y, z, ex, ey, ez, Particles,
-		generator, distribution, distribution_e);
+		x, Particles,
+		generator, distribution);
 
 	check_nooverlap(
-		x, y, z, Particles, L,
+		x, Particles, L,
 		generator, distribution);
 	printf("Initialization done.\n");
 
@@ -112,20 +93,19 @@ int main(int argc, char *argv[])
 	for (int time = 0; time < N; time++)
 	{
 		update_position(
-			x, y, z, ex, ey, ez, prefactor_e, Particles,
-			delta, De, Dt, xi_ex, xi_ey, xi_ez, xi_px,
-			xi_py, xi_pz, vs, prefactor_xi_px, prefactor_xi_py, prefactor_xi_pz,
-			r, prefactor_interaction,
-			generator, Gaussdistribution, distribution_e);
+			x, Particles,
+			delta, xi_px,
+			vs, prefactor_xi_px,
+			generator, Gaussdistribution);
 
-		cylindrical_reflective_boundary_conditions(
-			x, y, z, Particles,
-			Wall, height, L);
+		periodic_boundary_conditions(
+			x, Particles,
+			Wall);
 
 		if (time % 10 == 0 && time >= 0)
 		{
 			print_file(
-				x, y, z, ex, ey, ez,
+				x,
 				Particles, time,
 				datacsv);
 		}
@@ -136,11 +116,6 @@ int main(int argc, char *argv[])
 	printf("Time taken is %f", exec_time);
 
 	free(x);
-	free(y);
-	free(z);
-	free(ex);
-	free(ey);
-	free(ez);
 
 	fclose(datacsv);
 	return 0;

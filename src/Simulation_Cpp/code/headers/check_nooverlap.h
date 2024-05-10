@@ -7,6 +7,6 @@
 #include <omp.h> //import library to use pragma
 
 void check_nooverlap(
-	double *x, double *y, double *z, int Particles,
+	double *x, int Particles,
 	int L,
 	std::default_random_engine &generator, std::uniform_real_distribution<double> &distribution);
