@@ -25,5 +25,5 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Ruff
       run: |
-        cd ..
+        ls &&\
         make ruff
