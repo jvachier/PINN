@@ -1,6 +1,6 @@
 /*
  * Author: Jeremy Vachier - Physics Informed Neural Networks
- * Purpose: ABP 1D using an Euler-Mayurama algorithm
+ * Purpose: Langevin Equation 1D using an Euler-Mayurama algorithm
  * Language: C++
  * Date: 2024
  * Compilation line to use pragma: g++ name.cpp -fopenmp -o name.o (on mac run g++-13 ; 13 latest version obtain using brew list gcc)
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	double *x = (double *)malloc(Particles * sizeof(double)); // x-position
 
 	// parameters
-	const int L = 1.0; // particle size
+	// const int L = 1.0; // particle size
 
 	// initialization of the random generator
 	random_device rdev;
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 		// 	x, Particles,
 		// 	Wall);
 
-		if (time % 10 == 0 && time >= 0)
+		if (time % 1000 == 0 && time >= 0)
 		{
 			print_file(
 				x,
