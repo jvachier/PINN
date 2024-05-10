@@ -4,12 +4,12 @@ on:
     branches:
     - main
     paths:
-    - 'src/Neural_Network_python/**'
+    - './src/Neural_Network_python/**'
   pull_request:
     branches:
     - main
     paths:
-    - 'src/Neural_Network_python/**'
+    - './src/Neural_Network_python/**'
 jobs:
   lint:
     runs-on: ubuntu-latest
