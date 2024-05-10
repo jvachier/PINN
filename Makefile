@@ -9,9 +9,9 @@ black:
 	python -m black src/Neural_Network_python/
 
 ruff:
-	ruff check ./src/
-	ruff check --fix ./src/
-	ruff format ./src/
+	ruff check src/Neural_Network_python/
+	ruff check --fix src/Neural_Network_python/
+	ruff format src/Neural_Network_python/
 
 cpplint:
 	cpplint src/Simulation_C++/code/*.cpp

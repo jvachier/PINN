@@ -25,6 +25,7 @@
 #define PI 3.141592653589793
 #define N_thread 6
 
+
 using namespace std;
 
 int main(int argc, char *argv[])
