@@ -20,6 +20,7 @@
 *.pyc
 *.so
 *.pylintrc
+*.parquet
 
 *data/
 *videos/
