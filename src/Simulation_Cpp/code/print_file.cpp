@@ -9,6 +9,6 @@ void print_file(
 {
 	for (int k = 0; k < Particles; k++)
 	{
-		fprintf(datacsv, "Particles%d,%lf,%d\n", k, x[k], time);
+		fprintf(datacsv, "Particles%06d,%lf,%d\n", k, x[k], time);
 	}
 }

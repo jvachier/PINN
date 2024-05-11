@@ -48,10 +48,10 @@ int main(int argc, char *argv[])
 	double delta, Dt, vs;
 	double Wall;
 	int Particles;
-	int N; // number of iterations
+	int N, timestep; // number of iterations
 
-	fscanf(parameter, "%lf\t%d\t%lf\t%lf\t%lf\t%d\n", &delta, &Particles, &Dt, &vs, &Wall, &N);
-	printf("%lf\t%d\t%lf\t%lf\t%lf\t%d\n", delta, Particles, Dt, vs, Wall, N);
+	fscanf(parameter, "%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", &delta, &Particles, &Dt, &vs, &Wall, &N, &timestep);
+	printf("%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", delta, Particles, Dt, vs, Wall, N, timestep);
 
 	// Position
 	double *x = (double *)malloc(Particles * sizeof(double)); // x-position
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 		// 	x, Particles,
 		// 	Wall);
 
-		if (time % 1000 == 0 && time > 0)
+		if (time % timestep == 0 && time > 0)
 		{
 			print_file(
 				x,
