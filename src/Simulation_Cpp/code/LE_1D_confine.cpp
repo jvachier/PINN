@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 		// 	x, Particles,
 		// 	Wall);
 
-		if (time % 1000 == 0 && time >= 0)
+		if (time % 1000 == 0 && time > 0)
 		{
 			print_file(
 				x,
