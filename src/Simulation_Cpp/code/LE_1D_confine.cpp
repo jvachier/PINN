@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 // initialization position and activity
   initialization(
     x, Particles,
-    generator, distribution);
+    &generator, &distribution);
 
   // check_nooverlap(
   //   x, Particles, L,
