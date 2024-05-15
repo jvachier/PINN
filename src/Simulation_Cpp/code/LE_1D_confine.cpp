@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 // initialization position and activity
   initialization(
     x, Particles,
-    &generator, &distribution);
+    generator, distribution);
 
   // check_nooverlap(
   //   x, Particles, L,
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
       x, Particles,
       delta, xi_px,
       vs, prefactor_xi_px,
-      &generator, &Gaussdistribution);
+      generator, Gaussdistribution);
 
   // periodic_boundary_conditions(
   //  x, Particles,
