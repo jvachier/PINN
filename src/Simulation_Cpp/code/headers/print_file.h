@@ -6,6 +6,6 @@
 #include <time.h>
 
 void print_file(
-	double *x, 
-	int Particles, int time,
-	FILE *datacsv);
+  double *x,
+  int Particles, int time,
+  FILE *datacsv);
