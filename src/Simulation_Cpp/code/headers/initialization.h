@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <cmath>
 #include <time.h>
-#include <omp.h> //import library to use pragma
+#include <omp.h>  // import library to use pragma
 
 void initialization(
-	double *x, int Particles,
-	std::default_random_engine &generator, std::uniform_real_distribution<double> &distribution);
+  double *x, int Particles,
+  std::default_random_engine *generator,
+  std::uniform_real_distribution<double> *distribution);
