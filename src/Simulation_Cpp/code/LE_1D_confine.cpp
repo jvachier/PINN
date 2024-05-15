@@ -27,101 +27,100 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
-	// File
-	FILE *datacsv;
-	FILE *parameter;
-	parameter = fopen("parameter.txt", "r");
-	datacsv = fopen("../data/simulation.csv", "w");
+int main(int argc, char *argv[]) {
+  // File
+  FILE *datacsv;
+  FILE *parameter;
+  parameter = fopen("parameter.txt", "r");
+  datacsv = fopen("../data/simulation.csv", "w");
 
-	// check if the file parameter is exist
-	if (parameter == NULL)
-	{
-		printf("no such file.");
-		return 0;
-	}
+  // check if the file parameter is exist
+  if (parameter == NULL) {
+    printf("no such file.");
+    return 0;
+  }
 
-	omp_set_num_threads(N_thread);
+  omp_set_num_threads(N_thread);
 
-	// read the parameters from the file
-	double delta, Dt, vs;
-	double Wall;
-	int Particles;
-	int N, timestep; // number of iterations
+  // read the parameters from the file
+  double delta, Dt, vs;
+  double Wall;
+  int Particles;
+  int N, timestep;  // number of iterations
 
-	fscanf(parameter, "%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", &delta, &Particles, &Dt, &vs, &Wall, &N, &timestep);
-	printf("%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", delta, Particles, Dt, vs, Wall, N, timestep);
+  fscanf(parameter, "%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", \
+    &delta, &Particles, &Dt, &vs, &Wall, &N, &timestep);
+  printf("%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", \
+    delta, Particles, Dt, vs, Wall, N, timestep);
 
-	// Position
-	double *x = (double *)malloc(Particles * sizeof(double)); // x-position
+  // Position
+  double *x = reinterpret_cast<double*> \
+    (malloc(Particles * sizeof(double)));  // x-position
 
-	// parameters
-	// const int L = 1.0; // particle size
+  // parameters
+  // const int L = 1.0; // particle size
 
-	// initialization of the random generator
-	random_device rdev;
-	default_random_engine generator(rdev()); // random seed -> rdev
+  // initialization of the random generator
+  random_device rdev;
+  default_random_engine generator(rdev());  // random seed -> rdev
 
-	// Distributions Gaussian
-	normal_distribution<double> Gaussdistribution(0.0, 1.0);
-	// Distribution Uniform for initialization
-	uniform_real_distribution<double> distribution(-Wall, Wall);
+  // Distributions Gaussian
+  normal_distribution<double> Gaussdistribution(0.0, 1.0);
+  // Distribution Uniform for initialization
+  uniform_real_distribution<double> distribution(-Wall, Wall);
 
-	double xi_px = 0.0; // noise for x-position
+  double xi_px = 0.0;  // noise for x-position
 
-	// double phi = 0.0;
-	double prefactor_xi_px = sqrt(2.0 * delta * Dt);
+  // double phi = 0.0;
+  double prefactor_xi_px = sqrt(2.0 * delta * Dt);
 
-	// Open MP to get execution time
-	double itime, ftime, exec_time;
-	itime = omp_get_wtime();
+  // Open MP to get execution time
+  double itime, ftime, exec_time;
+  itime = omp_get_wtime();
 
-	fprintf(datacsv, "Particles,x-position,time\n");
+  fprintf(datacsv, "Particles,x-position,time\n");
 
-	// initialization position and activity
-	initialization(
-		x, Particles,
-		generator, distribution);
+// initialization position and activity
+  initialization(
+    x, Particles,
+    generator, distribution);
 
-	// check_nooverlap(
-	// 	x, Particles, L,
-	// 	generator, distribution);
-	int time = 0;
-	print_file(
-		x,
-		Particles, time,
-		datacsv);
-	printf("Initialization done.\n");
+  // check_nooverlap(
+  //   x, Particles, L,
+  //   generator, distribution);
+  int time = 0;
+  print_file(
+    x,
+    Particles, time,
+    datacsv);
+  printf("Initialization done.\n");
 
-	// Time evoultion
-	for (int time = 0; time < N; time++)
-	{
-		update_position(
-			x, Particles,
-			delta, xi_px,
-			vs, prefactor_xi_px,
-			generator, Gaussdistribution);
+  // Time evoultion
+  for (int time = 0; time < N; time++) {
+    update_position(
+      x, Particles,
+      delta, xi_px,
+      vs, prefactor_xi_px,
+      generator, Gaussdistribution);
 
-		// periodic_boundary_conditions(
-		// 	x, Particles,
-		// 	Wall);
+  // periodic_boundary_conditions(
+  //  x, Particles,
+  //  Wall);
 
-		if (time % timestep == 0 && time > 0)
-		{
-			print_file(
-				x,
-				Particles, time,
-				datacsv);
-		}
-	}
+  if (time % timestep == 0 && time > 0) {
+    print_file(
+      x,
+      Particles, time,
+      datacsv);
+  }
+}
 
-	ftime = omp_get_wtime();
-	exec_time = ftime - itime;
-	printf("Time taken is %f", exec_time);
+ftime = omp_get_wtime();
+exec_time = ftime - itime;
+printf("Time taken is %f", exec_time);
 
-	free(x);
+free(x);
 
-	fclose(datacsv);
-	return 0;
+fclose(datacsv);
+return 0;
 }
