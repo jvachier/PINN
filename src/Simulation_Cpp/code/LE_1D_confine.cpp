@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
       x, Particles,
       delta, xi_px,
       vs, prefactor_xi_px,
-      generator, Gaussdistribution);
+      &generator, &Gaussdistribution);
 
   // periodic_boundary_conditions(
   //  x, Particles,
