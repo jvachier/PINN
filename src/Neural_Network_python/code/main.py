@@ -18,6 +18,7 @@ def main() -> None:
     analytic = data_analytic.Analytic(three_up, df)
 
     analytic.analytic()
+    analytic.comparison()
 
 
 if __name__ == "__main__":
