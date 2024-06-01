@@ -58,4 +58,9 @@ class Analytic:
         plt.legend()
         plt.show()
 
-    # def save_data(self)-> None:
+    def save_data(self, df: pd.DataFrame) -> None:
+        df.to_parquet("./data/analytic_data.parquet")
+
+    def read_data(self) -> pd.DataFrame:
+        df = pd.read_parquet("./data/analytic_data.parquet", engine="pyarrow")
+        return df

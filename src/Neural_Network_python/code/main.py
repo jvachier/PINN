@@ -15,14 +15,18 @@ def main() -> None:
     data = data_preparation.PrepData(three_up, "prepdata")
     if path.isfile("./data/prepdata.parquet") is False:
         data.preparation()
-        df = data.readdata()
+        df_simulation = data.readdata()
     else:
-        df = data.readdata()
+        df_simulation = data.readdata()
 
     # Analytical results
-    analytic = data_analytic.Analytic(three_up, df)
+    analytic = data_analytic.Analytic(three_up, df_simulation)
 
-    analytic.analytic()
+    if path.isfile("./data/analytic_data.parquet") is False:
+        df_analytic = analytic.analytic()
+        analytic.save_data(df_analytic)
+    else:
+        df_analytic = analytic.read_data()
     if args.comparison:
         analytic.comparison(899)
 
