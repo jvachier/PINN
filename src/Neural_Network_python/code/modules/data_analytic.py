@@ -45,8 +45,7 @@ class Analytic:
         function[function < 1e-9] = 0.0
         return factor * function
 
-    def comparison(self):
-        time = 999
+    def comparison(self, time: int):
         plt.figure()
         new = self.data.loc[:, self.data.columns != "time"]
         new.iloc[time].hist(bins=100, density=True, label="Simulation")
