@@ -1,6 +1,6 @@
 import os.path as path
 
-from modules import data_preparation
+from modules import data_analytic, data_preparation
 
 
 def main() -> None:
@@ -14,6 +14,10 @@ def main() -> None:
         df = data.readdata()
 
     print(df)
+
+    analytic = data_analytic.Analytic(three_up, df)
+
+    analytic.analytic()
 
 
 if __name__ == "__main__":
