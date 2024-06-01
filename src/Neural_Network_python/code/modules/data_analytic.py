@@ -15,7 +15,7 @@ class Analytic:
     diffusion: float = None
 
     def __post_init__(self):
-        self.x = np.arange(-5.0, 5.0, 0.01)
+        self.x = np.arange(-10.0, 10.0, 0.01)
         with open(
             self.parameter_path + "/Simulation_Cpp/code/parameter.txt", "r"
         ) as file_data:
@@ -45,7 +45,7 @@ class Analytic:
         function[function < 1e-9] = 0.0
         return factor * function
 
-    def comparison(self, time: int):
+    def comparison(self, time: int) -> None:
         plt.figure()
         new = self.data.loc[:, self.data.columns != "time"]
         new.iloc[time].hist(bins=100, density=True, label="Simulation")
@@ -57,3 +57,5 @@ class Analytic:
         )
         plt.legend()
         plt.show()
+
+    # def save_data(self)-> None:

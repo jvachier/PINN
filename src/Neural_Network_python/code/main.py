@@ -12,7 +12,7 @@ def main() -> None:
 
     # Getting the correct path to the data
     three_up = path.abspath(path.join("__file__", "../../.."))
-    data = data_preparation.PrepData(three_up)
+    data = data_preparation.PrepData(three_up, "prepdata")
     if path.isfile("./data/prepdata.parquet") is False:
         data.preparation()
         df = data.readdata()
@@ -24,7 +24,7 @@ def main() -> None:
 
     analytic.analytic()
     if args.comparison:
-        analytic.comparison(800)
+        analytic.comparison(899)
 
 
 if __name__ == "__main__":

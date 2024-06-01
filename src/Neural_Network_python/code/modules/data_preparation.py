@@ -7,6 +7,7 @@ import polars as pl
 @dataclass(slots=True)
 class PrepData:
     simulation_path: str
+    file_name: str
 
     def preparation(self) -> None:
         polardata = pl.read_csv(
@@ -27,8 +28,8 @@ class PrepData:
             particle.drop_in_place("time")
             time0 = time0.with_columns(particle[i].alias(i))
         # save file to parquet
-        time0.write_parquet("./data/prepdata.parquet")
+        time0.write_parquet("./data/" + self.file_name + ".parquet")
 
     def readdata(self) -> pd.DataFrame:
-        df = pd.read_parquet("test.parquet", engine="pyarrow")
+        df = pd.read_parquet("./data/" + self.file_name + ".parquet", engine="pyarrow")
         return df
