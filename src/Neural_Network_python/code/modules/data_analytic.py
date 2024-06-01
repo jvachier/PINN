@@ -25,12 +25,15 @@ class Analytic:
         self.drift = float(parameters[3])
         self.diffusion = float(parameters[2])
 
-    def analytic(self) -> None:
+    def analytic(self) -> pd.DataFrame:
+        list = []
         for i in self.data["time"]:
             if i > 0:
                 a = self._funct(i)
-                # plt.plot(self.x, a)
-        # plt.show()
+                list.append(a)
+        list_array = np.array(list)
+        analytic_pd = pd.DataFrame(list_array, self.data["time"][1:])
+        return analytic_pd
 
     def _funct(self, t: float):
         t = t * self.scaling_time
@@ -38,21 +41,20 @@ class Analytic:
         function = np.exp(
             -((self.x - self.drift * t) ** 2) / (4.0 * self.diffusion * t)
         )
+        # To avoid e-239, precision of the exponetial, put it to 0 below 1e-9
+        function[function < 1e-9] = 0.0
         return factor * function
 
     def comparison(self):
+        time = 999
         plt.figure()
         new = self.data.loc[:, self.data.columns != "time"]
-        new.iloc[500].hist(bins=100, density=True, label="Simulation")
-        a = self._funct(self.data["time"][500])
+        new.iloc[time].hist(bins=100, density=True, label="Simulation")
+        a = self._funct(self.data["time"][time])
         plt.plot(
             self.x,
             a,
-            label="Analytic, $t=$" + str(self.data["time"][500] * self.scaling_time),
+            label="Analytic, $t=$" + str(self.data["time"][time] * self.scaling_time),
         )
         plt.legend()
         plt.show()
-
-
-# @dataclass(slots=True)
-# class Comparison:
