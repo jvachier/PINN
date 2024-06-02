@@ -33,6 +33,7 @@ class Analytic:
                 list.append(a)
         list_array = np.array(list)
         analytic_pd = pd.DataFrame(list_array, self.data["time"][1:])
+        analytic_pd.columns = self.x
         return analytic_pd
 
     def _funct(self, t: float):
