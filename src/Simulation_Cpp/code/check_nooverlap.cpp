@@ -5,8 +5,8 @@ using namespace std;
 void check_nooverlap(
   double *x, int Particles,
   int L,
-  default_random_engine generator,
-  uniform_real_distribution<double> distribution) {
+  default_random_engine &generator,
+  uniform_real_distribution<double> &distribution) {
   int count = 0;
   double R = 0.0;
 #pragma omp parallel for simd

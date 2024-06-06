@@ -101,25 +101,24 @@ int main(int argc, char *argv[]) {
       delta, xi_px,
       vs, prefactor_xi_px,
       generator, Gaussdistribution);
-
   // periodic_boundary_conditions(
   //  x, Particles,
   //  Wall);
 
-  if (time % timestep == 0 && time > 0) {
-    print_file(
-      x,
-      Particles, time,
-      datacsv);
+    if (time % timestep == 0 && time > 0) {
+      print_file(
+        x,
+        Particles, time,
+        datacsv);
+    }
   }
-}
 
-ftime = omp_get_wtime();
-exec_time = ftime - itime;
-printf("Time taken is %f", exec_time);
+  ftime = omp_get_wtime();
+  exec_time = ftime - itime;
+  printf("Time taken is %f", exec_time);
 
-free(x);
+  free(x);
 
-fclose(datacsv);
-return 0;
+  fclose(datacsv);
+  return 0;
 }
