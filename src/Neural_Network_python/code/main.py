@@ -28,7 +28,7 @@ def main() -> None:
     else:
         df_analytic = analytic.read_data()
     if args.comparison:
-        analytic.comparison(499)
+        analytic.comparison(299)
 
 
 if __name__ == "__main__":
