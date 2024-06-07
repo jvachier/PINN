@@ -47,23 +47,22 @@ class NN:
 
     def _train_test_data(self):
         self.df_ana_train = self.df_ana_processing[
-            0 : int(0.9 * len(self.df_ana_processing))
+            0 : int(0.7 * len(self.df_ana_processing))
         ]
         self.df_ana_test = self.df_ana_processing[
-            int(0.9 * len(self.df_ana_processing)) :
+            int(0.7 * len(self.df_ana_processing)) :
         ]
 
         self.df_sim_processing_train = self.df_sim_processing[
-            0 : int(0.9 * len(self.df_sim_processing))
+            0 : int(0.7 * len(self.df_sim_processing))
         ]
         self.df_sim_processing_test = self.df_sim_processing[
-            int(0.9 * len(self.df_sim_processing)) :
+            int(0.7 * len(self.df_sim_processing)) :
         ]
 
     def _shape_data(self):
         self.n_xtrain, self.m_xtrain = self.df_sim_processing_train.T.shape
         self.n_ytrain, self.m_ytrain = self.df_ana_train.T.shape
-        print(self.n_xtrain)
 
     def nn_model(self) -> object:
         self._data_prep()
@@ -81,7 +80,7 @@ class NN:
         modell_nn.add(Dense(units=1024, activation="gelu"))
         modell_nn.add(Dense(self.n_ytrain, activation="tanh"))
         modell_nn.compile(
-            optimizer=Adam(learning_rate=1e-4),
+            optimizer=Adam(learning_rate=1e-3),
             loss="mse",
             metrics=[keras.metrics.RootMeanSquaredError()],
         )
@@ -106,11 +105,11 @@ class NN:
     def fit_model(self, modell_nn: object) -> np.ndarray:
         return modell_nn.predict(self.df_sim_processing_test.values)
 
-    def comparison_nn_sim_ana(self, a: np.ndarray) -> None:
+    def comparison_nn_sim_ana(self, a: np.ndarray, time: int) -> None:
         df_sim_test = self.df_sim_processing_test.drop(columns="time")
-        plt.plot(self.df_ana_test.columns, self.df_ana_test.iloc[40], label="Ana")
-        df_sim_test.iloc[40].hist(bins=100, density=True, label="Sim")
-        plt.plot(self.df_ana_test.columns, a[40], "r", label="NN")
+        plt.plot(self.df_ana_test.columns, self.df_ana_test.iloc[time], label="Ana")
+        df_sim_test.iloc[time].hist(bins=100, density=True, label="Sim")
+        plt.plot(self.df_ana_test.columns, a[time], "r", label="NN")
         plt.legend()
         plt.savefig("./figures/comparison_nn_sim_ana_without_loss_physics.png")
         plt.show()

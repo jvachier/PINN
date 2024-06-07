@@ -28,14 +28,14 @@ def main() -> None:
     else:
         df_analytic = analytic.read_data()
     if args.comparison:
-        analytic.comparison(299)
+        analytic.comparison(5)
 
     # Neural Network
     nn = neural_network.NN()
     model_nn = nn.nn_model()
-    nn.fit_evaluate(model_nn, 250)
+    nn.fit_evaluate(model_nn, 30)
     fit_model = nn.fit_model(model_nn)
-    nn.comparison_nn_sim_ana(fit_model)
+    nn.comparison_nn_sim_ana(fit_model, 1)
 
 
 if __name__ == "__main__":
