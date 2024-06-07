@@ -1,7 +1,7 @@
 import os.path as path
 from argparse import ArgumentParser
 
-from modules import data_analytic, data_preparation
+from modules import data_analytic, data_preparation, neural_network
 
 
 def main() -> None:
@@ -28,7 +28,14 @@ def main() -> None:
     else:
         df_analytic = analytic.read_data()
     if args.comparison:
-        analytic.comparison(899)
+        analytic.comparison(299)
+
+    # Neural Network
+    nn = neural_network.NN()
+    model_nn = nn.nn_model()
+    nn.fit_evaluate(model_nn, 250)
+    fit_model = nn.fit_model(model_nn)
+    nn.comparison_nn_sim_ana(fit_model)
 
 
 if __name__ == "__main__":

@@ -1,13 +1,11 @@
 #include "headers/update_position.h"
 
-using namespace std;
-
 void update_position(
   double *x, int Particles,
   double delta, double xi_px,
   double vs, double prefactor_xi_px,
-  default_random_engine generator,
-  normal_distribution<double> Gaussdistribution) {
+  std::default_random_engine &generator,
+  std::normal_distribution<double> &Gaussdistribution) {
 // Second position
 #pragma omp parallel for simd
   for (int k = 0; k < Particles; k++) {

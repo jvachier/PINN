@@ -15,7 +15,7 @@ class Analytic:
     diffusion: float = None
 
     def __post_init__(self):
-        self.x = np.arange(-10.0, 10.0, 0.01)
+        self.x = np.arange(-25.0, 25.0, 0.01)
         with open(
             self.parameter_path + "/Simulation_Cpp/code/parameter.txt", "r"
         ) as file_data:
@@ -33,6 +33,7 @@ class Analytic:
                 list.append(a)
         list_array = np.array(list)
         analytic_pd = pd.DataFrame(list_array, self.data["time"][1:])
+        analytic_pd.columns = self.x
         return analytic_pd
 
     def _funct(self, t: float):
