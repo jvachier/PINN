@@ -111,4 +111,6 @@ class NN:
         plt.plot(self.df_ana_test.columns, self.df_ana_test.iloc[40], label="Ana")
         df_sim_test.iloc[40].hist(bins=100, density=True, label="Sim")
         plt.plot(self.df_ana_test.columns, a[40], "r", label="NN")
+        plt.legend()
+        plt.savefig("./figures/comparison_nn_sim_ana_without_loss_physics.png")
         plt.show()

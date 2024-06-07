@@ -33,7 +33,7 @@ def main() -> None:
     # Neural Network
     nn = neural_network.NN()
     model_nn = nn.nn_model()
-    nn.fit_evaluate(model_nn, 150)
+    nn.fit_evaluate(model_nn, 250)
     fit_model = nn.fit_model(model_nn)
     nn.comparison_nn_sim_ana(fit_model)
 
