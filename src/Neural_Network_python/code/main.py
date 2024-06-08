@@ -1,7 +1,10 @@
 import os.path as path
 from argparse import ArgumentParser
 
+import tensorflow as tf
 from modules import data_analytic, data_preparation, neural_network
+
+tf.config.set_soft_device_placement(True)
 
 
 def main() -> None:
@@ -33,9 +36,12 @@ def main() -> None:
     # Neural Network
     nn = neural_network.NN()
     model_nn = nn.nn_model()
-    nn.fit_evaluate(model_nn, 30)
-    fit_model = nn.fit_model(model_nn)
-    nn.comparison_nn_sim_ana(fit_model, 1)
+    with tf.device("/device:GPU:0"):
+        nn.fit_evaluate(model_nn, 50)
+        fit_model_test = nn.fit_model_test(model_nn)
+        fit_model_train = nn.fit_model_train(model_nn)
+    nn.comparison_nn_sim_ana_test(fit_model_test, 10)
+    nn.comparison_nn_sim_ana_train(fit_model_train, 10)
 
 
 if __name__ == "__main__":

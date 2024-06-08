@@ -77,7 +77,12 @@ int main(int argc, char *argv[]) {
   double itime, ftime, exec_time;
   itime = omp_get_wtime();
 
-  fprintf(datacsv, "Particles,x-position,time\n");
+  // fprintf(datacsv, "Particles,x-position,time\n");
+  fprintf(datacsv,"time,");
+  for (int i = 0 ; i < Particles ; i++){
+    fprintf(datacsv,"Particles%06d,",i);
+  }
+  fprintf(datacsv,"\n");
 
 // initialization position and activity
   initialization(
