@@ -48,32 +48,44 @@ class NN:
         self._train_test_data()
 
         test = self.df_ana_train.copy()
-        self.df_ana_train = test._append([test] * 4, ignore_index=True)
+        self.df_ana_train = test._append([test] * 7, ignore_index=True)
 
         df_sim_processing_1 = self.df_sim_processing_train.iloc[:, :10000]
         df_sim_processing_2 = self.df_sim_processing_train.iloc[:, 10000:20000]
         df_sim_processing_3 = self.df_sim_processing_train.iloc[:, 20000:30000]
         df_sim_processing_4 = self.df_sim_processing_train.iloc[:, 30000:40000]
         df_sim_processing_5 = self.df_sim_processing_train.iloc[:, 40000:50000]
+        df_sim_processing_6 = self.df_sim_processing_train.iloc[:, 50000:60000]
+        df_sim_processing_7 = self.df_sim_processing_train.iloc[:, 60000:70000]
+        df_sim_processing_8 = self.df_sim_processing_train.iloc[:, 70000:80000]
 
         df_sim_processing_2.columns = df_sim_processing_1.columns.values
         df_sim_processing_3.columns = df_sim_processing_1.columns.values
         df_sim_processing_4.columns = df_sim_processing_1.columns.values
         df_sim_processing_5.columns = df_sim_processing_1.columns.values
+        df_sim_processing_6.columns = df_sim_processing_1.columns.values
+        df_sim_processing_7.columns = df_sim_processing_1.columns.values
+        df_sim_processing_8.columns = df_sim_processing_1.columns.values
 
         df_sim_processing_2["time"] = df_sim_processing_1.time
         df_sim_processing_3["time"] = df_sim_processing_1.time
         df_sim_processing_4["time"] = df_sim_processing_1.time
         df_sim_processing_5["time"] = df_sim_processing_1.time
+        df_sim_processing_6["time"] = df_sim_processing_1.time
+        df_sim_processing_7["time"] = df_sim_processing_1.time
+        df_sim_processing_8["time"] = df_sim_processing_1.time
 
         concat_1 = pd.concat([df_sim_processing_1, df_sim_processing_2])
         concat_2 = pd.concat([concat_1, df_sim_processing_3])
         concat_3 = pd.concat([concat_2, df_sim_processing_4])
         concat_4 = pd.concat([concat_3, df_sim_processing_5])
+        concat_5 = pd.concat([concat_4, df_sim_processing_6])
+        concat_6 = pd.concat([concat_5, df_sim_processing_7])
+        concat_7 = pd.concat([concat_6, df_sim_processing_8])
 
-        self.df_sim_processing_train = concat_4
+        self.df_sim_processing_train = concat_7
 
-    def _train_test_data(self):
+    def _train_test_data(self) -> None:
         self.df_ana_train = self.df_ana_processing[
             0 : int(0.9 * len(self.df_ana_processing))
         ]
@@ -88,7 +100,7 @@ class NN:
             int(0.9 * len(self.df_sim_processing)) :
         ]
 
-    def _shape_data(self):
+    def _shape_data(self) -> None:
         self.n_xtrain, self.m_xtrain = self.df_sim_processing_train.T.shape
         self.n_ytrain, self.m_ytrain = self.df_ana_train.T.shape
 
