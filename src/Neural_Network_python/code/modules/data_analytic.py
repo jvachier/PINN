@@ -15,7 +15,7 @@ class Analytic:
     diffusion: float = None
 
     def __post_init__(self):
-        self.x = np.arange(-25.0, 25.0, 0.01)
+        self.x = np.arange(-25.0, 50.0, 0.01)
         with open(
             self.parameter_path + "/Simulation_Cpp/code/parameter.txt", "r"
         ) as file_data:

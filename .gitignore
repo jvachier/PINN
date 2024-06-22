@@ -21,11 +21,14 @@
 *.so
 *.pylintrc
 *.parquet
+*.keras
+*.pkl
 
 *data/
 *videos/
 *pickle_files/
 *predictions/
+*keras_model/
 
 *__pycache__/
 __pycache__/

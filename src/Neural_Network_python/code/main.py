@@ -1,7 +1,9 @@
 import os.path as path
+import pickle
 from argparse import ArgumentParser
 
 import tensorflow as tf
+from keras.models import load_model
 from modules import data_analytic, data_preparation, neural_network
 
 tf.config.set_soft_device_placement(True)
@@ -35,13 +37,55 @@ def main() -> None:
 
     # Neural Network
     nn = neural_network.NN()
-    model_nn = nn.nn_model()
+    (
+        df_ana_train,
+        df_ana_test,
+        df_sim_processing_train,
+        df_sim_processing_test,
+    ) = nn.data_prep()
+    n_xtrain, m_xtrain, n_ytrain, m_ytrain = nn.shape_data(
+        df_ana_train, df_sim_processing_train
+    )
     with tf.device("/device:GPU:0"):
-        nn.fit_evaluate(model_nn, 50)
-        fit_model_test = nn.fit_model_test(model_nn)
-        fit_model_train = nn.fit_model_train(model_nn)
-    nn.comparison_nn_sim_ana_test(fit_model_test, 10)
-    nn.comparison_nn_sim_ana_train(fit_model_train, 10)
+        if path.isfile("./keras_model/modell_nn.keras") is False:
+            model_nn = nn.nn_model(
+                df_ana_train=df_ana_train,
+                df_sim_processing_train=df_sim_processing_train,
+                n_xtrain=n_xtrain,
+                n_ytrain=n_ytrain,
+                epoch=50,
+            )
+            predict_model_test = nn.predict_model_test(
+                modell_nn=model_nn, df_sim_processing_test=df_sim_processing_test
+            )
+            predict_model_train = nn.predict_model_train(
+                modell_nn=model_nn, df_sim_processing_train=df_sim_processing_train
+            )
+            with open("./predictions/predict_model_train.pkl", "wb") as dbfile_train:
+                pickle.dump(predict_model_train, dbfile_train)
+
+            with open("./predictions/predict_model_test.pkl", "wb") as dbfile_test:
+                pickle.dump(predict_model_test, dbfile_test)
+        else:
+            model_nn = load_model("./keras_model/modell_nn.keras")
+            with open("./predictions/predict_model_train.pkl", "rb") as dbfile_train:
+                predict_model_train = pickle.load(dbfile_train)
+
+            with open("./predictions/predict_model_test.pkl", "rb") as dbfile_test:
+                predict_model_test = pickle.load(dbfile_test)
+
+    nn.comparison_nn_sim_ana_train(
+        a=predict_model_train,
+        time=700,
+        df_sim_processing_train=df_sim_processing_train,
+        df_ana_train=df_ana_train,
+    )
+    nn.comparison_nn_sim_ana_test(
+        a=predict_model_test,
+        time=0,
+        df_sim_processing_test=df_sim_processing_test,
+        df_ana_test=df_ana_test,
+    )
 
 
 if __name__ == "__main__":
