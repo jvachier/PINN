@@ -53,7 +53,7 @@ def main() -> None:
                 df_sim_processing_train=df_sim_processing_train,
                 n_xtrain=n_xtrain,
                 n_ytrain=n_ytrain,
-                epoch=2,
+                epoch=50,
             )
             predict_model_test = nn.predict_model_test(
                 modell_nn=model_nn, df_sim_processing_test=df_sim_processing_test
@@ -80,7 +80,6 @@ def main() -> None:
         df_sim_processing_train=df_sim_processing_train,
         df_ana_train=df_ana_train,
     )
-    print(df_ana_train.iloc[700], df_sim_processing_train.iloc[700])
     nn.comparison_nn_sim_ana_test(
         a=predict_model_test,
         time=0,
