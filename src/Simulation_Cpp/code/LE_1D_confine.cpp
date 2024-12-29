@@ -23,7 +23,7 @@
 
 #define PI 3.141592653589793
 #define N_thread 6
-#define Type_Bin true
+#define Type_Bin false
 
 using namespace std;
 

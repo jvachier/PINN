@@ -17,7 +17,7 @@ void print_file(
   FILE *datacsv) {
   fprintf(datacsv, "%d,", time);
   for (int k = 0; k < Particles; k++) {
-    fprintf(datacsv, "%lf,", x[k]);
+    fprintf(datacsv, "%.3lf,", x[k]);
   }
   fprintf(datacsv, "\n");
 }
