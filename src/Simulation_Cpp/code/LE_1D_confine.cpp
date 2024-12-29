@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   FILE *parameter;
   parameter = fopen("parameter.txt", "r");
   // datacsv = fopen("../data/simulation.csv", "w");
-  datacsv = fopen("../data/simulation.bin", "w");
+  datacsv = fopen("../data/simulation.bin", "wb");
 
   // check if the file parameter is exist
   if (parameter == NULL) {
@@ -84,12 +84,6 @@ int main(int argc, char *argv[]) {
   //   fprintf(datacsv, "Particles%06d,", i);
   // }
   // fprintf(datacsv, "\n");
-
-  fwrite("time,", sizeof(char), 1, datacsv);
-  for (int i = 0 ; i < Particles ; i++) {
-    fwrite("Particles%06d,", sizeof(i), 1, datacsv);
-  }
-  fwrite("\n", sizeof(char), 1, datacsv);
 
 // initialization position and activity
   initialization(

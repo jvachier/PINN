@@ -26,9 +26,8 @@ void print_file_binary(
   double *x,
   int Particles, int time,
   FILE *datacsv) {
-  fwrite(&time, sizeof(time), 1, datacsv);
-  for (int k = 0; k < sizeof(x)/sizeof(*x); k++) {
-    fwrite(&x[k], sizeof(*x), 1, datacsv);
+  fwrite(&time, sizeof(int), 1, datacsv);
+  for (int k = 0; k < Particles; k++) {
+    fwrite(&x[k], sizeof(double), 1, datacsv);
   }
-  fwrite("\n", sizeof(char), 1, datacsv);
 }
