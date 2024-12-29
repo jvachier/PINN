@@ -23,6 +23,7 @@
 
 #define PI 3.141592653589793
 #define N_thread 6
+#define Type_Bin true
 
 using namespace std;
 
@@ -31,8 +32,12 @@ int main(int argc, char *argv[]) {
   FILE *datacsv;
   FILE *parameter;
   parameter = fopen("parameter.txt", "r");
-  // datacsv = fopen("../data/simulation.csv", "w");
-  datacsv = fopen("../data/simulation.bin", "wb");
+
+  if (Type_Bin == true) {
+    datacsv = fopen("../data/simulation.bin", "wb");
+  } else {
+    datacsv = fopen("../data/simulation.csv", "w");
+  }
 
   // check if the file parameter is exist
   if (parameter == NULL) {
@@ -78,12 +83,14 @@ int main(int argc, char *argv[]) {
   double itime, ftime, exec_time;
   itime = omp_get_wtime();
 
-  // fprintf(datacsv, "Particles,x-position,time\n");
-  // fprintf(datacsv, "time,");
-  // for (int i = 0 ; i < Particles ; i++) {
-  //   fprintf(datacsv, "Particles%06d,", i);
-  // }
-  // fprintf(datacsv, "\n");
+  if (Type_Bin == false) {
+    // fprintf(datacsv, "Particles,x-position,time\n");
+    fprintf(datacsv, "time,");
+    for (int i = 0 ; i < Particles ; i++) {
+      fprintf(datacsv, "Particles%06d,", i);
+    }
+    fprintf(datacsv, "\n");
+  }
 
 // initialization position and activity
   initialization(
@@ -94,15 +101,17 @@ int main(int argc, char *argv[]) {
   //   x, Particles, L,
   //   generator, distribution);
   int time = 0;
-  // print_file(
-  //   x,
-  //   Particles, time,
-  //   datacsv);
-  print_file_binary(
-    x,
-    Particles, time,
-    datacsv);
-
+  if (Type_Bin == true) {
+    print_file_binary(
+      x,
+      Particles, time,
+      datacsv);
+  } else {
+    print_file(
+      x,
+      Particles, time,
+      datacsv);
+  }
   printf("Initialization done.\n");
 
   // Time evoultion
@@ -117,14 +126,17 @@ int main(int argc, char *argv[]) {
   //  Wall);
 
     if (time % timestep == 0 && time > 0) {
-      // print_file(
-      //   x,
-      //   Particles, time,
-      //   datacsv);
-      print_file_binary(
-        x,
-        Particles, time,
-        datacsv);
+      if (Type_Bin == true) {
+        print_file_binary(
+          x,
+          Particles, time,
+          datacsv);
+      } else {
+        print_file(
+          x,
+          Particles, time,
+          datacsv);
+      }
     }
   }
 
