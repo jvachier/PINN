@@ -46,12 +46,12 @@ int main(int argc, char *argv[]) {
   double delta, Dt, vs;
   double Wall;
   int Particles;
-  int N, timestep;  // number of iterations
+  int total_time, timestep;  // number of iterations
 
   fscanf(parameter, "%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", \
-    &delta, &Particles, &Dt, &vs, &Wall, &N, &timestep);
+    &delta, &Particles, &Dt, &vs, &Wall, &total_time, &timestep);
   printf("%lf\t%d\t%lf\t%lf\t%lf\t%d\t%d\n", \
-    delta, Particles, Dt, vs, Wall, N, timestep);
+    delta, Particles, Dt, vs, Wall, total_time, timestep);
 
   // Position
   double *x = reinterpret_cast<double*> \
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
   printf("Initialization done.\n");
 
   // Time evoultion
-  for (int time = 0; time < N; time++) {
+  for (int time = 0; time < total_time; time++) {
     update_position(
       x, Particles,
       delta, xi_px,
