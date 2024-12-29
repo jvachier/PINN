@@ -8,6 +8,8 @@ from modules import data_analytic, data_preparation, neural_network
 
 tf.config.set_soft_device_placement(True)
 
+binary = False
+
 
 def main() -> None:
     parser = ArgumentParser()
@@ -23,6 +25,14 @@ def main() -> None:
         df_simulation = data.readdata()
     else:
         df_simulation = data.readdata()
+
+    # Binary
+    if binary is True:
+        if path.isfile("./data/prepdata_from_binary.parquet") is False:
+            data.preparation_binary()
+            df_simulation = data.readdata_binary()
+        else:
+            df_simulation = data.readdata_binary()
 
     # Analytical results
     analytic = data_analytic.Analytic(three_up, df_simulation)
