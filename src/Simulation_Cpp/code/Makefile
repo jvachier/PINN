@@ -1,4 +1,4 @@
-CC = g++-13 -O3 -std=c++17
+CC = g++-14 -O3 -std=c++17
 CFLAGS = -Wall -g -fopenmp -fopenmp-simd
 
 LE_1D_confine: LE_1D_confine.o print_file.o periodic_boundary_conditions.o initialization.o update_position.o check_nooverlap.o

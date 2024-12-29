@@ -31,7 +31,8 @@ int main(int argc, char *argv[]) {
   FILE *datacsv;
   FILE *parameter;
   parameter = fopen("parameter.txt", "r");
-  datacsv = fopen("../data/simulation.csv", "w");
+  // datacsv = fopen("../data/simulation.csv", "w");
+  datacsv = fopen("../data/simulation.bin", "w");
 
   // check if the file parameter is exist
   if (parameter == NULL) {
@@ -78,11 +79,17 @@ int main(int argc, char *argv[]) {
   itime = omp_get_wtime();
 
   // fprintf(datacsv, "Particles,x-position,time\n");
-  fprintf(datacsv, "time,");
+  // fprintf(datacsv, "time,");
+  // for (int i = 0 ; i < Particles ; i++) {
+  //   fprintf(datacsv, "Particles%06d,", i);
+  // }
+  // fprintf(datacsv, "\n");
+
+  fwrite("time,", sizeof(char), 1, datacsv);
   for (int i = 0 ; i < Particles ; i++) {
-    fprintf(datacsv, "Particles%06d,", i);
+    fwrite("Particles%06d,", sizeof(i), 1, datacsv);
   }
-  fprintf(datacsv, "\n");
+  fwrite("\n", sizeof(char), 1, datacsv);
 
 // initialization position and activity
   initialization(
@@ -93,10 +100,15 @@ int main(int argc, char *argv[]) {
   //   x, Particles, L,
   //   generator, distribution);
   int time = 0;
-  print_file(
+  // print_file(
+  //   x,
+  //   Particles, time,
+  //   datacsv);
+  print_file_binary(
     x,
     Particles, time,
     datacsv);
+
   printf("Initialization done.\n");
 
   // Time evoultion
@@ -111,7 +123,11 @@ int main(int argc, char *argv[]) {
   //  Wall);
 
     if (time % timestep == 0 && time > 0) {
-      print_file(
+      // print_file(
+      //   x,
+      //   Particles, time,
+      //   datacsv);
+      print_file_binary(
         x,
         Particles, time,
         datacsv);
