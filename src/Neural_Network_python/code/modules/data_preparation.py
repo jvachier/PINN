@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 import polars as pl
 
@@ -37,6 +38,37 @@ class PrepData:
         polardata.drop_in_place("")
         polardata.write_parquet("./data/" + self.file_name + ".parquet")
 
+    def preparation_binary(self) -> None:
+        # Read binary file
+        with open(
+            self.simulation_path + "/Simulation_Cpp/data/simulation.bin", "rb"
+        ) as f:
+            file_binary = f.read()
+        # Read parameter file to get the total number of particles
+        with open(
+            self.simulation_path + "/Simulation_Cpp/code/parameter.txt", "r"
+        ) as file_data:
+            for line in file_data:
+                parameters = line.split()
+        N_particles = int(parameters[1])
+        # Preparing the type
+        list_type = []
+        list_type.append(("time", "int32"))
+        for i in range(N_particles):
+            list_type.append(("Particle" + str(i), "float64"))
+        dt = np.dtype(list_type)
+        np_data = np.frombuffer(file_binary, dt)
+        df = pd.DataFrame(np_data)
+        df.to_parquet(
+            "./data/" + self.file_name + "_from_binary.parquet", engine="pyarrow"
+        )
+
     def readdata(self) -> pd.DataFrame:
         df = pd.read_parquet("./data/" + self.file_name + ".parquet", engine="pyarrow")
+        return df
+
+    def readdata_binary(self) -> pd.DataFrame:
+        df = pd.read_parquet(
+            "./data/" + self.file_name + "_from_binary.parquet", engine="pyarrow"
+        )
         return df

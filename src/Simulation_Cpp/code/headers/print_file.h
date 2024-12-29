@@ -9,3 +9,8 @@ void print_file(
   double *x,
   int Particles, int time,
   FILE *datacsv);
+
+void print_file_binary(
+  double *x,
+  int Particles, int time,
+  FILE *datacsv);
