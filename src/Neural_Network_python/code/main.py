@@ -102,11 +102,12 @@ def main() -> None:
                 pickle.dump(model_prop, f)
         else:
             from keras.models import load_model as lm
+
             model_prop = lm("./keras_model/modell_propagator.keras")
 
     # Seed the rollout with the empirical histogram at the last training step.
     # nn.X_train[:, :-1] holds the histogram part (all columns except dt_norm).
-    hist_seed = nn.X_train[-1, :-1]          # last histogram seen during training
+    hist_seed = nn.X_train[-1, :-1]  # last histogram seen during training
 
     # Predict the next 20 saved steps forward in time — no C++ needed.
     n_future_steps = 20
@@ -118,7 +119,7 @@ def main() -> None:
         predictions=predictions,
         df_ana=df_analytic,
         start_step=start_step,
-        n_steps=5,   # plot 5 evenly-spaced snapshots
+        n_steps=5,  # plot 5 evenly-spaced snapshots
     )
 
 

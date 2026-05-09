@@ -41,9 +41,9 @@ class NN:
     y_test: np.ndarray = None
 
     # Propagator dataset produced by build_propagator_dataset()
-    X_prop: np.ndarray = None   # (n_pairs, n_bins + 1)  — hist_t concat dt_norm
-    y_prop: np.ndarray = None   # (n_pairs, n_bins)      — hist_{t+dt}
-    dt_scale: float = None      # raw dt between saved steps (for denormalisation)
+    X_prop: np.ndarray = None  # (n_pairs, n_bins + 1)  — hist_t concat dt_norm
+    y_prop: np.ndarray = None  # (n_pairs, n_bins)      — hist_{t+dt}
+    dt_scale: float = None  # raw dt between saved steps (for denormalisation)
 
     def __post_init__(self):
         self.df_ana = pd.read_parquet("./data/analytic_data.parquet", engine="pyarrow")
@@ -87,7 +87,9 @@ class NN:
         features[:, -1] = t_norm.astype(np.float32)
         return features
 
-    def data_prep(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def data_prep(
+        self,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         df_ana_processing = self.df_ana.copy()
         df_ana_processing = df_ana_processing.rename_axis("time").reset_index()
         df_ana_processing = df_ana_processing.drop(columns="time")
@@ -206,7 +208,7 @@ class NN:
           temporal information through all layers.
         * softplus output guarantees non-negative predictions (required for a PDF).
         """
-        n_input = self.X_train.shape[1]   # len(x_grid) + 1
+        n_input = self.X_train.shape[1]  # len(x_grid) + 1
         n_output = self.y_train.shape[1]  # len(x_grid)
 
         modell_nn = Sequential()
@@ -341,7 +343,7 @@ class NN:
         """
         assert self.X_prop is not None, "Call build_propagator_dataset() first."
 
-        n_input = self.X_prop.shape[1]   # n_bins + 1
+        n_input = self.X_prop.shape[1]  # n_bins + 1
         n_output = self.y_prop.shape[1]  # n_bins
 
         model = Sequential()
@@ -421,8 +423,12 @@ class NN:
         start_step  : row index in df_ana corresponding to the first *predicted* step.
         n_steps     : how many steps to plot (evenly spread across predictions).
         """
-        indices = np.linspace(0, len(predictions) - 1, min(n_steps, len(predictions)), dtype=int)
-        fig, axes = plt.subplots(1, len(indices), figsize=(5 * len(indices), 4), sharey=True)
+        indices = np.linspace(
+            0, len(predictions) - 1, min(n_steps, len(predictions)), dtype=int
+        )
+        fig, axes = plt.subplots(
+            1, len(indices), figsize=(5 * len(indices), 4), sharey=True
+        )
         if len(indices) == 1:
             axes = [axes]
         for ax, idx in zip(axes, indices):
