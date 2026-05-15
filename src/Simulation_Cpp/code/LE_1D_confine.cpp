@@ -7,13 +7,14 @@
  * Compilation line to use pragma, simd (vectorization) and tuple: g++ -O3 -std=c++17 name.cpp -fopenmp -o name.o
  */
 
-#include <time.h>
-#include <stdio.h>
-#include <omp.h>  // import library to use pragma
+#include <ctime>
+#include <cstdio>
+#include <omp.h>
 #include <iostream>
 #include <random>
 #include <cstring>
 #include <cmath>
+#include <vector>
 
 #include "headers/print_file.h"
 #include "headers/periodic_boundary_conditions.h"
@@ -22,8 +23,7 @@
 #include "headers/check_nooverlap.h"
 
 #define PI 3.141592653589793
-#define N_thread 6
-#define Type_Bin false
+#define Type_Bin true
 
 using namespace std;
 
@@ -39,13 +39,11 @@ int main(int argc, char *argv[]) {
     datacsv = fopen("../data/simulation.csv", "w");
   }
 
-  // check if the file parameter is exist
   if (parameter == NULL) {
-    printf("no such file.");
-    return 0;
+    printf("no such file.\n");
+    fclose(datacsv);
+    return 1;
   }
-
-  omp_set_num_threads(N_thread);
 
   // read the parameters from the file
   double delta, Dt, vs;
@@ -67,21 +65,24 @@ int main(int argc, char *argv[]) {
 
   // initialization of the random generator
   random_device rdev;
-  default_random_engine generator(rdev());  // random seed -> rdev
+  default_random_engine generator(rdev());
+
+  // Per-thread generators — each seeded independently to avoid correlations.
+  int N_thread = omp_get_max_threads();
+  vector<default_random_engine> generators(N_thread);
+  for (int t = 0; t < N_thread; t++) {
+    generators[t].seed(rdev());
+  }
 
   // Distributions Gaussian
   normal_distribution<double> Gaussdistribution(0.0, 1.0);
   // Distribution Uniform for initialization
   uniform_real_distribution<double> distribution(-Wall, Wall);
 
-  double xi_px = 0.0;  // noise for x-position
-
-  // double phi = 0.0;
   double prefactor_xi_px = sqrt(2.0 * delta * Dt);
 
   // Open MP to get execution time
-  double itime, ftime, exec_time;
-  itime = omp_get_wtime();
+  double itime = omp_get_wtime();
 
   if (Type_Bin == false) {
     // fprintf(datacsv, "Particles,x-position,time\n");
@@ -118,9 +119,9 @@ int main(int argc, char *argv[]) {
   for (int time = 0; time < total_time; time++) {
     update_position(
       x, Particles,
-      delta, xi_px,
+      delta,
       vs, prefactor_xi_px,
-      generator, Gaussdistribution);
+      generators);
   // periodic_boundary_conditions(
   //  x, Particles,
   //  Wall);
@@ -140,9 +141,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  ftime = omp_get_wtime();
-  exec_time = ftime - itime;
-  printf("Time taken is %f", exec_time);
+  double exec_time = omp_get_wtime() - itime;
+  printf("Time taken is %f\n", exec_time);
 
   free(x);
 

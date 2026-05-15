@@ -1,14 +1,21 @@
 import os.path as path
 import pickle
+import tomllib
 from argparse import ArgumentParser
+from pathlib import Path
 
+import numpy as np
 import tensorflow as tf
 from keras.models import load_model
 from modules import data_analytic, data_preparation, neural_network
 
+_SETTINGS_PATH = Path(__file__).parent / "settings.toml"
+with open(_SETTINGS_PATH, "rb") as _f:
+    _SETTINGS = tomllib.load(_f)
+
 tf.config.set_soft_device_placement(True)
 
-binary = False
+binary = True
 
 
 def main() -> None:
@@ -20,19 +27,15 @@ def main() -> None:
     # Getting the correct path to the data
     three_up = path.abspath(path.join("__file__", "../../.."))
     data = data_preparation.PrepData(three_up, "prepdata")
-    if path.isfile("./data/prepdata.parquet") is False:
-        data.preparation()
-        df_simulation = data.readdata()
-    else:
-        df_simulation = data.readdata()
 
-    # Binary
-    if binary is True:
+    if binary:
         if path.isfile("./data/prepdata_from_binary.parquet") is False:
             data.preparation_binary()
-            df_simulation = data.readdata_binary()
-        else:
-            df_simulation = data.readdata_binary()
+        df_simulation = data.readdata_binary()
+    else:
+        if path.isfile("./data/prepdata.parquet") is False:
+            data.preparation()
+        df_simulation = data.readdata()
 
     # Analytical results
     analytic = data_analytic.Analytic(three_up, df_simulation)
@@ -55,7 +58,7 @@ def main() -> None:
     ) = nn.data_prep()
     with tf.device("/device:GPU:0"):
         if path.isfile("./keras_model/modell_nn.keras") is False:
-            model_nn = nn.nn_model(epoch=50)
+            model_nn = nn.nn_model()
             predict_model_test = nn.predict_model_test(modell_nn=model_nn)
             predict_model_train = nn.predict_model_train(modell_nn=model_nn)
             with open("./predictions/predict_model_train.pkl", "wb") as dbfile_train:
@@ -64,22 +67,24 @@ def main() -> None:
             with open("./predictions/predict_model_test.pkl", "wb") as dbfile_test:
                 pickle.dump(predict_model_test, dbfile_test)
         else:
-            model_nn = load_model("./keras_model/modell_nn.keras")
+            model_nn = load_model("./keras_model/modell_nn.keras", compile=False)
             with open("./predictions/predict_model_train.pkl", "rb") as dbfile_train:
                 predict_model_train = pickle.load(dbfile_train)
 
             with open("./predictions/predict_model_test.pkl", "rb") as dbfile_test:
                 predict_model_test = pickle.load(dbfile_test)
 
+    mid_train = len(df_sim_processing_train) // 2
+    mid_test = max(0, len(df_sim_processing_test) // 2)
     nn.comparison_nn_sim_ana_train(
         a=predict_model_train,
-        time=700,
+        time=mid_train,
         df_sim_processing_train=df_sim_processing_train,
         df_ana_train=df_ana_train,
     )
     nn.comparison_nn_sim_ana_test(
         a=predict_model_test,
-        time=0,
+        time=mid_test,
         df_sim_processing_test=df_sim_processing_test,
         df_ana_test=df_ana_test,
     )
@@ -88,38 +93,47 @@ def main() -> None:
     # Propagator: train on (hist_t, dt) -> hist_{t+dt} pairs,
     # then roll out from the last *short-run* step without the C++ code.
     # ------------------------------------------------------------------
-    # Use the full simulation (train + test rows) to maximise training pairs.
-    df_sim_full = df_sim_processing_train._append(df_sim_processing_test)
+    # Propagator: train on consecutive analytic pairs so the temporal signal is
+    # noise-free.  Simulation histograms have O(1/sqrt(N)) shot noise per bin
+    # which can swamp the small step-to-step PDF change (especially at late
+    # times when the Gaussian is broad and nearly static).
+    # Use ALL available analytic rows so the model sees the full time range.
+    df_sim_chrono = nn.df_sim.iloc[1:].copy()  # time axis; matches df_ana rows
+    df_ana_chrono = nn.df_ana  # noise-free PDFs for all saved time steps
 
-    # multi_step=3 means we train on gaps of 1, 2, and 3 saved steps,
-    # which encourages longer-horizon consistency.
-    nn.build_propagator_dataset(df_sim_full, multi_step=3)
+    nn.build_propagator_dataset(
+        df_sim_chrono,
+        multi_step=_SETTINGS["training"]["multi_step"],
+        df_ana=df_ana_chrono,  # use analytic PDFs instead of simulation histograms
+    )
 
     with tf.device("/device:GPU:0"):
         if path.isfile("./keras_model/modell_propagator.keras") is False:
-            model_prop = nn.nn_model_propagator(epoch=50)
-            with open("./predictions/model_propagator.pkl", "wb") as f:
-                pickle.dump(model_prop, f)
+            model_prop = nn.nn_model_propagator()
         else:
             from keras.models import load_model as lm
 
-            model_prop = lm("./keras_model/modell_propagator.keras")
+            model_prop = lm("./keras_model/modell_propagator.keras", compile=False)
 
-    # Seed the rollout with the empirical histogram at the last training step.
-    # nn.X_train[:, :-1] holds the histogram part (all columns except dt_norm).
-    hist_seed = nn.X_train[-1, :-1]  # last histogram seen during training
+    # Seed the rollout from ~25% of the timeline so we can observe clear
+    # temporal evolution (drift + broadening) over a long horizon.
+    # e.g. at τ ≈ 2.5 the Gaussian is narrow at x≈2.5; by τ=10 it is broad at x≈10.
+    seed_idx = len(df_ana_chrono) // 4
+    x_fine = df_ana_chrono.columns.values.astype(np.float64)
+    hist_seed = np.interp(
+        nn.x_grid, x_fine, df_ana_chrono.iloc[seed_idx].values
+    ).astype(np.float32)
 
-    # Predict the next 20 saved steps forward in time — no C++ needed.
-    n_future_steps = 20
+    # Roll forward from seed_idx+1 to the end of the analytic dataset.
+    start_step = seed_idx + 1  # first predicted row index in df_analytic
+    n_future_steps = len(df_analytic) - start_step
     predictions = nn.rollout(model_prop, hist_seed, n_steps=n_future_steps)
 
-    # The analytic solution starts at start_step = number of training rows.
-    start_step = len(df_sim_processing_train)
     nn.comparison_propagator(
         predictions=predictions,
         df_ana=df_analytic,
         start_step=start_step,
-        n_steps=5,  # plot 5 evenly-spaced snapshots
+        n_steps=5,
     )
 
 

@@ -1,0 +1,36 @@
+# ── Global settings for the PINN project ─────────────────────────────────────
+# Edit here to change parameters without touching any Python or C++ source.
+
+[analytic]
+x_min  = -25.0   # Left boundary of the spatial domain
+x_max  =  50.0   # Right boundary
+x_step =   0.01  # Grid spacing for the analytic solution (analytic_data.parquet)
+
+[network]
+# Coarser spatial resolution for NN input/output.
+# 600 bins over [-25, 50] → 0.125/bin; fine enough to resolve early narrow Gaussians.
+n_bins           = 600
+train_test_split = 0.9    # Fraction of time-steps used for training
+
+[training]
+epochs_nn             = 300
+batch_size_nn         = 32
+learning_rate_nn      = 3e-4
+
+epochs_propagator     = 500
+batch_size_propagator = 32
+
+# Larger multi_step trains on longer gaps → better long-horizon rollout.
+multi_step = 15
+
+[physics]
+# Fokker-Planck coefficients per saved snapshot interval.
+# Derived from parameter.txt: drift_eff = vs*delta*timestep, diff_eff = delta*Dt*timestep.
+# Keep in sync with parameter.txt when you change simulation parameters.
+delta    = 1e-3   # noise amplitude (matches parameter.txt)
+Dt       = 1.0    # diffusion coefficient in the SDE
+vs       = 1.0    # drift velocity
+timestep = 10     # saved-step interval (simulation steps per snapshot)
+# Weight of the Fokker-Planck residual relative to MSE.
+# 0.0 = pure data; increase if rollout drifts from analytic.
+weight   = 0.1

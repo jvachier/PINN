@@ -10,7 +10,7 @@ void periodic_boundary_conditions(
     if (x[k] > Wall) {
       x[k] = -Wall;
     }
-    if (x[k] < Wall) {
+    if (x[k] < -Wall) {
       x[k] = Wall;
     }
   }

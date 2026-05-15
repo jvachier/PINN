@@ -1,10 +1,5 @@
-#include <time.h>
-#include <stdio.h>
-#include <omp.h>  // import library to use pragma
-#include <iostream>
+#pragma once
 #include <random>
-#include <cstring>
-#include <cmath>
 
 void initialization(
   double *x, int Particles,

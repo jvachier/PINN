@@ -1,28 +1,29 @@
-CC = g++-14 -O3 -std=c++17
-CFLAGS = -Wall -g -fopenmp -fopenmp-simd
+# On macOS use Homebrew clang (compatible with macOS SDK) + Homebrew libomp.
+# On Linux the Docker image uses g++-14; this Makefile is for local macOS builds.
+CC      = clang++
+LIBOMP  = /opt/homebrew/opt/libomp
+# -O3: full optimisation  -march=native: NEON / AVX auto-vectorisation
+# -Xpreprocessor -fopenmp: clang needs this to enable OpenMP on macOS
+CFLAGS  = -O3 -std=c++17 -march=native -Wall -g \
+          -Xpreprocessor -fopenmp \
+          -I$(LIBOMP)/include
+LDFLAGS = -L$(LIBOMP)/lib -lomp
 
-LE_1D_confine: LE_1D_confine.o print_file.o periodic_boundary_conditions.o initialization.o update_position.o check_nooverlap.o
-	$(CC) $(CFLAGS) -o LE_1D_confine.out LE_1D_confine.o print_file.o periodic_boundary_conditions.o initialization.o update_position.o check_nooverlap.o
+OBJS = LE_1D_confine.o print_file.o periodic_boundary_conditions.o \
+       initialization.o update_position.o check_nooverlap.o
 
-LE_1D_confine.o: LE_1D_confine.cpp
-	$(CC) $(CFLAGS) -c LE_1D_confine.cpp
+.PHONY: all clean run
 
-print_file.o: print_file.cpp
-	$(CC) -c print_file.cpp
+all: LE_1D_confine.out
 
-periodic_boundary_conditions.o: periodic_boundary_conditions.cpp
-	$(CC) $(CFLAGS) -c periodic_boundary_conditions.cpp
+LE_1D_confine.out: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS)
 
-initialization.o: initialization.cpp
-	$(CC) $(CFLAGS) -c initialization.cpp
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
-update_position.o: update_position.cpp
-	$(CC) $(CFLAGS) -c update_position.cpp
-
-check_nooverlap.o: check_nooverlap.cpp
-	$(CC) $(CFLAGS) -c check_nooverlap.cpp
+run: LE_1D_confine.out
+	./LE_1D_confine.out
 
 clean:
-	rm *.o
-
-	
+	rm -f *.o LE_1D_confine.out
