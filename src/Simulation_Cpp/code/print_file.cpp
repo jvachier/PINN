@@ -1,6 +1,6 @@
+// Copyright 2024 Jeremy Vachier
 #include "headers/print_file.h"
-
-using namespace std;
+#include <cstdio>
 
 // void print_file(
 //   double *x,
@@ -27,7 +27,9 @@ void print_file_binary(
   int Particles, int time,
   FILE *datacsv) {
   fwrite(&time, sizeof(int), 1, datacsv);
+  // Cast to float (4 bytes) — ample for 3 d.p. precision, halves file size.
   for (int k = 0; k < Particles; k++) {
-    fwrite(&x[k], sizeof(double), 1, datacsv);
+    float xf = static_cast<float>(x[k]);
+    fwrite(&xf, sizeof(float), 1, datacsv);
   }
 }

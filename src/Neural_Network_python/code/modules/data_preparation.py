@@ -1,8 +1,14 @@
+import tomllib
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import polars as pl
+
+_SETTINGS_PATH = Path(__file__).parent.parent / "settings.toml"
+with open(_SETTINGS_PATH, "rb") as _f:
+    _SETTINGS = tomllib.load(_f)
 
 
 @dataclass(slots=True)
@@ -19,11 +25,11 @@ class PrepData:
         # Sort tags
         tags.sort()
         # Get time
-        time0 = polardata.filter((pl.col("Particles") == tags[0]))
+        time0 = polardata.filter(pl.col("Particles") == tags[0])
         time0.drop_in_place("Particles")
         time0.drop_in_place("x-position")
         for i in tags:
-            particles = polardata.filter((pl.col("Particles") == i))
+            particles = polardata.filter(pl.col("Particles") == i)
             particle = particles.rename({"x-position": i})
             particle.drop_in_place("Particles")
             particle.drop_in_place("time")
@@ -44,18 +50,12 @@ class PrepData:
             self.simulation_path + "/Simulation_Cpp/data/simulation.bin", "rb"
         ) as f:
             file_binary = f.read()
-        # Read parameter file to get the total number of particles
-        with open(
-            self.simulation_path + "/Simulation_Cpp/code/parameter.txt", "r"
-        ) as file_data:
-            for line in file_data:
-                parameters = line.split()
-        N_particles = int(parameters[1])
+        N_particles = _SETTINGS["physics"]["particles"]
         # Preparing the type
         list_type = []
         list_type.append(("time", "int32"))
         for i in range(N_particles):
-            list_type.append(("Particle" + str(i), "float64"))
+            list_type.append(("Particle" + str(i), "float32"))
         dt = np.dtype(list_type)
         np_data = np.frombuffer(file_binary, dt)
         df = pd.DataFrame(np_data)

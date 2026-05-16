@@ -1,15 +1,22 @@
+// Copyright 2024 Jeremy Vachier
 #include "headers/update_position.h"
+#include <vector>
 
 void update_position(
   double *x, int Particles,
-  double delta, double xi_px,
+  double delta,
   double vs, double prefactor_xi_px,
-  std::default_random_engine &generator,
-  std::normal_distribution<double> &Gaussdistribution) {
-// Second position
-#pragma omp parallel for simd
-  for (int k = 0; k < Particles; k++) {
-    xi_px = Gaussdistribution(generator);
-    x[k] = x[k] + vs * delta + xi_px * prefactor_xi_px;
+  std::vector<std::default_random_engine> &generators) {
+  const double drift = vs * delta;
+  // Each thread uses its own generator — no race condition.
+  // -O3 -march=native auto-vectorises the fused multiply-add arithmetic.
+#pragma omp parallel
+  {
+    int tid = omp_get_thread_num();
+    std::normal_distribution<double> dist(0.0, 1.0);
+#pragma omp for
+    for (int k = 0; k < Particles; k++) {
+      x[k] += drift + dist(generators[tid]) * prefactor_xi_px;
+    }
   }
 }

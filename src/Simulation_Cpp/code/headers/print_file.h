@@ -1,3 +1,5 @@
+// Copyright 2024 Jeremy Vachier
+#pragma once
 #include <time.h>
 #include <stdio.h>
 #include <iostream>
