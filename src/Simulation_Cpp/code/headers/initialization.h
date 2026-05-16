@@ -1,3 +1,4 @@
+// Copyright 2024 Jeremy Vachier
 #pragma once
 #include <random>
 

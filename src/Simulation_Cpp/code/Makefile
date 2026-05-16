@@ -12,7 +12,11 @@ LDFLAGS = -L$(LIBOMP)/lib -lomp
 OBJS = LE_1D_confine.o print_file.o periodic_boundary_conditions.o \
        initialization.o update_position.o check_nooverlap.o
 
-.PHONY: all clean run
+# All objects except the main translation unit (has its own main())
+TEST_OBJS = print_file.o periodic_boundary_conditions.o \
+            initialization.o update_position.o check_nooverlap.o
+
+.PHONY: all clean run test
 
 all: LE_1D_confine.out
 
@@ -25,5 +29,11 @@ LE_1D_confine.out: $(OBJS)
 run: LE_1D_confine.out
 	./LE_1D_confine.out
 
+test: test_simulation.out
+	./test_simulation.out
+
+test_simulation.out: tests/test_simulation.cpp $(TEST_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I. -o $@ tests/test_simulation.cpp $(TEST_OBJS)
+
 clean:
-	rm -f *.o LE_1D_confine.out
+	rm -f *.o LE_1D_confine.out test_simulation.out

@@ -1,15 +1,14 @@
+// Copyright 2024 Jeremy Vachier
 #include "headers/check_nooverlap.h"
-
-using namespace std;
+#include <cstdio>
 
 void check_nooverlap(
   double *x, int Particles,
   int L,
-  default_random_engine &generator,
-  uniform_real_distribution<double> &distribution) {
+  std::default_random_engine &generator,
+  std::uniform_real_distribution<double> &distribution) {
   int count = 0;
   double R = 0.0;
-#pragma omp parallel for simd
   for (int k = 0; k < Particles; k++) {
     for (int j = 0; j < Particles; j++) {
       if (k != j) {

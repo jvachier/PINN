@@ -2,8 +2,8 @@
 !requirements.txt
 
 # Ignore Mac system files
-.DS_store
-.dSYM
+.DS_Store
+*.dSYM/
 
 # Ignore all csv files
 *.csv
@@ -15,6 +15,7 @@
 # Ignore all text files
 *.txt
 *.bin
+*.out
 *.h5
 *.keras
 *.pyc
@@ -24,10 +25,10 @@
 *.keras
 *.pkl
 
-*data/
-*videos/
-*pickle_files/
-*predictions/
+**/data/
+**/videos/
+**/pickle_files/
+**/predictions/
 *keras_model/
 
 *__pycache__/
@@ -51,3 +52,6 @@ __pycache__/
 
 *.venv
 *.env
+
+*.pytest_cache/
+*.mypy_cache/

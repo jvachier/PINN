@@ -1,6 +1,6 @@
+// Copyright 2024 Jeremy Vachier
 #include "headers/print_file.h"
-
-using namespace std;
+#include <cstdio>
 
 // void print_file(
 //   double *x,

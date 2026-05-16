@@ -1,5 +1,14 @@
 # Physics-Informed Neural Networks (PINN)
 
+[![CI](https://github.com/jvachier/PINN/actions/workflows/ruff.yml/badge.svg)](https://github.com/jvachier/PINN/actions/workflows/ruff.yml)
+[![Python](https://img.shields.io/badge/python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](LICENCE)
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue?logo=c%2B%2B&logoColor=white)](https://isocpp.org/)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](src/Simulation_Cpp/Dockerfile)
+
 A physics-informed machine learning pipeline for 1D Langevin dynamics.
 The C++ simulator generates particle trajectory data; a Python neural network learns
 the evolving probability-density function (PDF) and a physics-constrained propagator

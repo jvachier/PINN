@@ -867,7 +867,7 @@ dependencies = [
     { name = "scikit-optimize" },
     { name = "statsmodels" },
     { name = "tensorflow" },
-    { name = "tensorflow-metal" },
+    { name = "tensorflow-metal", marker = "sys_platform == 'darwin'" },
 ]
 
 [package.dev-dependencies]
@@ -897,7 +897,7 @@ requires-dist = [
     { name = "scikit-optimize", specifier = ">=0.9.0" },
     { name = "statsmodels", specifier = ">=0.14.1" },
     { name = "tensorflow", specifier = ">=2.15.0" },
-    { name = "tensorflow-metal", specifier = ">=1.1.0" },
+    { name = "tensorflow-metal", marker = "sys_platform == 'darwin'", specifier = ">=1.1.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1445,8 +1445,8 @@ name = "tensorflow-metal"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "six" },
-    { name = "wheel" },
+    { name = "six", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "wheel", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e0/09/91b253511cd59b9964672567f36b412daf3c70f75fcb5e84468fafa939ac/tensorflow_metal-1.2.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:5fa7cee627031c14f45bd97ff0ef422cd6c3866199ff99cf29b94db6674ceb42", size = 1357400, upload-time = "2025-01-31T00:52:56.634Z" },

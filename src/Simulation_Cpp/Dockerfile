@@ -17,6 +17,12 @@ RUN make all \
       CFLAGS="-O3 -std=c++17 -march=native -Wall -g -fopenmp" \
       LDFLAGS="-fopenmp"
 
+# Build and run the unit tests inside the builder to validate the binary.
+RUN make test \
+      CC=g++-14 \
+      CFLAGS="-O3 -std=c++17 -march=native -Wall -g -fopenmp" \
+      LDFLAGS="-fopenmp"
+
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM ubuntu:24.04 AS runtime
 

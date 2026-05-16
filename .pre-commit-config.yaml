@@ -43,14 +43,8 @@ repos:
     hooks:
       - id: cpplint
         name: cpplint
-        entry: uv run --directory src/Neural_Network_python cpplint
-        language: system
+        entry: cpplint
+        language: python
+        additional_dependencies: ["cpplint>=1.6.1"]
         files: ^src/Simulation_Cpp/code/.*\.(cpp|h)$
         pass_filenames: true
-
-      - id: pytest
-        name: pytest
-        entry: uv run --directory src/Neural_Network_python pytest code/tests/ -v
-        language: system
-        pass_filenames: false
-        always_run: true

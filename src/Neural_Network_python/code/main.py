@@ -1,6 +1,4 @@
 import logging
-import os.path as path
-import pickle
 import tomllib
 from argparse import ArgumentParser
 from pathlib import Path
@@ -32,22 +30,22 @@ def main() -> None:
     args = parser.parse_args()
 
     # Getting the correct path to the data
-    three_up = path.abspath(path.join("__file__", "../../.."))
-    data = data_preparation.PrepData(three_up, "prepdata")
+    three_up = Path(__file__).parent.parent.parent.parent
+    data = data_preparation.PrepData(str(three_up), "prepdata")
 
     if binary:
-        if path.isfile("./data/prepdata_from_binary.parquet") is False:
+        if not Path("./data/prepdata_from_binary.parquet").is_file():
             data.preparation_binary()
         df_simulation = data.readdata_binary()
     else:
-        if path.isfile("./data/prepdata.parquet") is False:
+        if not Path("./data/prepdata.parquet").is_file():
             data.preparation()
         df_simulation = data.readdata()
 
     # Analytical results
     analytic = data_analytic.Analytic(df_simulation)
 
-    if path.isfile("./data/analytic_data.parquet") is False:
+    if not Path("./data/analytic_data.parquet").is_file():
         df_analytic = analytic.analytic()
         analytic.save_data(df_analytic)
     else:
@@ -64,22 +62,18 @@ def main() -> None:
         df_sim_processing_test,
     ) = nn.data_prep()
     with tf.device("/device:GPU:0"):
-        if path.isfile("./keras_model/modell_nn.keras") is False:
+        train_pred_path = Path("./predictions/predict_model_train.npy")
+        test_pred_path = Path("./predictions/predict_model_test.npy")
+        if not Path("./keras_model/modell_nn.keras").is_file():
             model_nn = nn.nn_model()
             predict_model_test = nn.predict_model_test(modell_nn=model_nn)
             predict_model_train = nn.predict_model_train(modell_nn=model_nn)
-            with open("./predictions/predict_model_train.pkl", "wb") as dbfile_train:
-                pickle.dump(predict_model_train, dbfile_train)
-
-            with open("./predictions/predict_model_test.pkl", "wb") as dbfile_test:
-                pickle.dump(predict_model_test, dbfile_test)
+            np.save(train_pred_path, predict_model_train)
+            np.save(test_pred_path, predict_model_test)
         else:
             model_nn = load_model("./keras_model/modell_nn.keras", compile=False)
-            with open("./predictions/predict_model_train.pkl", "rb") as dbfile_train:
-                predict_model_train = pickle.load(dbfile_train)
-
-            with open("./predictions/predict_model_test.pkl", "rb") as dbfile_test:
-                predict_model_test = pickle.load(dbfile_test)
+            predict_model_train = np.load(train_pred_path)
+            predict_model_test = np.load(test_pred_path)
 
     mid_train = len(df_sim_processing_train) // 2
     mid_test = max(0, len(df_sim_processing_test) // 2)
@@ -115,12 +109,12 @@ def main() -> None:
     )
 
     with tf.device("/device:GPU:0"):
-        if path.isfile("./keras_model/modell_propagator.keras") is False:
+        if not Path("./keras_model/modell_propagator.keras").is_file():
             model_prop = nn.nn_model_propagator()
         else:
-            from keras.models import load_model as lm
-
-            model_prop = lm("./keras_model/modell_propagator.keras", compile=False)
+            model_prop = load_model(
+                "./keras_model/modell_propagator.keras", compile=False
+            )
 
     # Seed the rollout from ~25% of the timeline so we can observe clear
     # temporal evolution (drift + broadening) over a long horizon.

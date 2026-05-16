@@ -2,7 +2,7 @@ NN_DIR  = src/Neural_Network_python
 SIM_DIR = src/Simulation_Cpp
 DOCKER  = /opt/homebrew/bin/docker --context colima
 
-.PHONY: sim-build sim-run sim-clean \
+.PHONY: sim-build sim-run sim-clean sim-test \
         colima-start docker-build docker-run \
         install install-dev lock \
         pre-commit-install pre-commit \
@@ -21,6 +21,10 @@ sim-run:
 sim-clean:
 	$(info [sim] Cleaning build artefacts...)
 	$(MAKE) -C $(SIM_DIR)/code clean
+
+sim-test:
+	$(info [sim] Running C++ test suite...)
+	$(MAKE) -C $(SIM_DIR)/code test
 
 # ── Docker / Colima (C++ simulation) ─────────────────────────────────────────
 # Requires: brew install colima docker
@@ -88,3 +92,5 @@ gen-params:
 test:
 	$(info [test] Running Python test suite...)
 	uv run --directory $(NN_DIR) pytest code/tests/ -v
+	$(info [test] Running C++ test suite...)
+	$(MAKE) -C $(SIM_DIR)/code test

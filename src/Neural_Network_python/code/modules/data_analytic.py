@@ -28,12 +28,8 @@ class Analytic:
         self.diffusion = float(cfg_p["Dt"])
 
     def analytic(self) -> pd.DataFrame:
-        list = []
-        for i in self.data["time"]:
-            if i > 0:
-                a = self._funct(i)
-                list.append(a)
-        list_array = np.array(list)
+        rows = [self._funct(i) for i in self.data["time"] if i > 0]
+        list_array = np.array(rows)
         analytic_pd = pd.DataFrame(list_array, self.data["time"][1:])
         analytic_pd.columns = pd.Index(self.x)
         return analytic_pd

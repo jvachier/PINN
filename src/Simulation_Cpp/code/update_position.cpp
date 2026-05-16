@@ -1,11 +1,12 @@
+// Copyright 2024 Jeremy Vachier
 #include "headers/update_position.h"
+#include <vector>
 
 void update_position(
   double *x, int Particles,
   double delta,
   double vs, double prefactor_xi_px,
   std::vector<std::default_random_engine> &generators) {
-
   const double drift = vs * delta;
   // Each thread uses its own generator — no race condition.
   // -O3 -march=native auto-vectorises the fused multiply-add arithmetic.

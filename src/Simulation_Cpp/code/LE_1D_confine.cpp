@@ -1,3 +1,4 @@
+// Copyright 2024 Jeremy Vachier
 /*
  * Author: Jeremy Vachier - Physics Informed Neural Networks
  * Purpose: Langevin Equation 1D using an Euler-Mayurama algorithm
@@ -7,13 +8,13 @@
  * Compilation line to use pragma, simd (vectorization) and tuple: g++ -O3 -std=c++17 name.cpp -fopenmp -o name.o
  */
 
+#include <omp.h>
 #include <ctime>
 #include <cstdio>
-#include <omp.h>
-#include <iostream>
-#include <random>
 #include <cstring>
 #include <cmath>
+#include <iostream>
+#include <random>
 #include <vector>
 
 #include "headers/print_file.h"
@@ -24,8 +25,6 @@
 
 #define PI 3.141592653589793
 #define Type_Bin true
-
-using namespace std;
 
 int main(int argc, char *argv[]) {
   // File
@@ -64,20 +63,20 @@ int main(int argc, char *argv[]) {
   // const int L = 1.0; // particle size
 
   // initialization of the random generator
-  random_device rdev;
-  default_random_engine generator(rdev());
+  std::random_device rdev;
+  std::default_random_engine generator(rdev());
 
   // Per-thread generators — each seeded independently to avoid correlations.
   int N_thread = omp_get_max_threads();
-  vector<default_random_engine> generators(N_thread);
+  std::vector<std::default_random_engine> generators(N_thread);
   for (int t = 0; t < N_thread; t++) {
     generators[t].seed(rdev());
   }
 
   // Distributions Gaussian
-  normal_distribution<double> Gaussdistribution(0.0, 1.0);
+  std::normal_distribution<double> Gaussdistribution(0.0, 1.0);
   // Distribution Uniform for initialization
-  uniform_real_distribution<double> distribution(-Wall, Wall);
+  std::uniform_real_distribution<double> distribution(-Wall, Wall);
 
   double prefactor_xi_px = sqrt(2.0 * delta * Dt);
 
