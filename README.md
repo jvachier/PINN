@@ -14,6 +14,11 @@ The C++ simulator generates particle trajectory data; a Python neural network le
 the evolving probability-density function (PDF) and a physics-constrained propagator
 predicts the PDF at future times without any further simulation.
 
+> **Scope of "physics-informed":** the physics constraint (Fokker–Planck residual in
+> the loss) applies specifically to the propagator model (`nn_model_propagator`).
+> The PDF predictor (`nn_model`) is a standard supervised model trained purely on
+> simulation and analytic data.
+
 ---
 
 ## Physics Background
