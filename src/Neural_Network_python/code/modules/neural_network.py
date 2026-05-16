@@ -1,5 +1,6 @@
+import logging
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import keras
@@ -10,6 +11,8 @@ import tensorflow as tf
 from keras.layers import BatchNormalization, Concatenate, Dense, Dropout, Input
 from keras.optimizers.legacy import Adam
 from plotly.subplots import make_subplots
+
+logger = logging.getLogger(__name__)
 
 _SETTINGS_PATH = Path(__file__).parent.parent / "settings.toml"
 with open(_SETTINGS_PATH, "rb") as _f:
@@ -101,41 +104,38 @@ class _BackboneSaver(keras.callbacks.Callback):
         if current < self._best:
             self._best = current
             self.backbone.save(self.filepath)
-            print(
-                f"\nEpoch {epoch + 1}: _BackboneSaver — val_mse improved to "
-                f"{current:.6f}, saved {self.filepath}"
+            logger.info(
+                "Epoch %d: _BackboneSaver — val_mse improved to %.6f, saved %s",
+                epoch + 1,
+                current,
+                self.filepath,
             )
 
 
 @dataclass(slots=True)
 class NN:
-    df_ana: pd.DataFrame = None
-    df_sim: pd.DataFrame = None
+    df_ana: pd.DataFrame = field(init=False)
+    df_sim: pd.DataFrame = field(init=False)
 
-    df_ana_processing: pd.DataFrame = None
-    df_sim_processing: pd.DataFrame = None
+    df_ana_processing: pd.DataFrame | None = None
+    df_sim_processing: pd.DataFrame | None = None
 
-    df_ana_train: pd.DataFrame = None
-    df_ana_test: pd.DataFrame = None
-    df_sim_processing_train: pd.DataFrame = None
-    df_sim_processing_test: pd.DataFrame = None
-
-    n_xtrain: int = None
-    m_xtrain: int = None
-    n_ytrain: int = None
-    m_ytrain: int = None
+    df_ana_train: pd.DataFrame | None = None
+    df_ana_test: pd.DataFrame | None = None
+    df_sim_processing_train: pd.DataFrame | None = None
+    df_sim_processing_test: pd.DataFrame | None = None
 
     # Preprocessed arrays produced by data_prep()
-    x_grid: np.ndarray = None
-    X_train: np.ndarray = None
-    X_test: np.ndarray = None
-    y_train: np.ndarray = None
-    y_test: np.ndarray = None
+    x_grid: np.ndarray = field(init=False)
+    X_train: np.ndarray | None = None
+    X_test: np.ndarray | None = None
+    y_train: np.ndarray | None = None
+    y_test: np.ndarray | None = None
 
     # Propagator dataset produced by build_propagator_dataset()
-    X_prop: np.ndarray = None  # (n_pairs, n_bins + 1)  — hist_t concat dt_norm
-    y_prop: np.ndarray = None  # (n_pairs, n_bins)      — hist_{t+dt}
-    dt_scale: float = None  # raw dt between saved steps (for denormalisation)
+    X_prop: np.ndarray | None = None  # (n_pairs, n_bins + 1)  — hist_t concat dt_norm
+    y_prop: np.ndarray | None = None  # (n_pairs, n_bins)      — hist_{t+dt}
+    dt_scale: float | None = None  # raw dt between saved steps (for denormalisation)
 
     def __post_init__(self):
         self.df_ana = pd.read_parquet("./data/analytic_data.parquet", engine="pyarrow")
@@ -176,7 +176,7 @@ class NN:
         )
         particle_cols = [c for c in df_sim.columns if c != "time"]
         positions = df_sim[particle_cols].values.astype(np.float64)  # (n, n_particles)
-        times = df_sim["time"].values.astype(np.float64)
+        times = np.asarray(df_sim["time"], dtype=np.float64)
         t_range = t_max - t_min
         t_norm = (times - t_min) / t_range if t_range > 0 else np.zeros_like(times)
 
@@ -253,30 +253,6 @@ class NN:
             df_sim_processing_test,
         )
 
-    def train_test_data(
-        self, df_ana_processing: pd.DataFrame, df_sim_processing: pd.DataFrame
-    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-        df_ana_train = df_ana_processing[0 : int(0.9 * len(df_ana_processing))]
-        df_ana_test = df_ana_processing[int(0.9 * len(df_ana_processing)) :]
-
-        df_sim_processing_train = df_sim_processing[
-            0 : int(0.9 * len(df_sim_processing))
-        ]
-        df_sim_processing_test = df_sim_processing[int(0.9 * len(df_sim_processing)) :]
-        return (
-            df_sim_processing_train,
-            df_sim_processing_test,
-            df_ana_train,
-            df_ana_test,
-        )
-
-    def shape_data(
-        self, df_ana_train: pd.DataFrame, df_sim_processing_train: pd.DataFrame
-    ) -> tuple[int, int, int, int]:
-        n_xtrain, m_xtrain = df_sim_processing_train.T.shape
-        n_ytrain, m_ytrain = df_ana_train.T.shape
-        return n_xtrain, m_xtrain, n_ytrain, m_ytrain
-
     def nn_model(self, epoch: int | None = None) -> object:
         """
         Build and train the network.
@@ -295,10 +271,14 @@ class NN:
           temporal information through all layers.
         * softplus output guarantees non-negative predictions (required for a PDF).
         """
-        n_input = self.X_train.shape[1]  # n_bins + 1
-        n_output = self.y_train.shape[1]  # n_bins
+        X_train = self.X_train
+        y_train = self.y_train
+        assert X_train is not None and y_train is not None, "Call data_prep() first."
+        n_input = X_train.shape[1]  # n_bins + 1
+        n_output = y_train.shape[1]  # n_bins
 
         cfg_t = _SETTINGS["training"]
+        cfg_n = _SETTINGS["network"]
         if epoch is None:
             epoch = cfg_t["epochs_nn"]
 
@@ -309,21 +289,21 @@ class NN:
         time_in = inp[:, n_output:]  # (batch, 1)      — normalised time
 
         # Spatial pathway: compress the histogram into a latent representation
-        h = Dense(512, activation="gelu")(hist_in)
+        h = Dense(cfg_n["nn_spatial_hidden"][0], activation="gelu")(hist_in)
         h = BatchNormalization()(h)
-        h = Dense(256, activation="gelu")(h)
+        h = Dense(cfg_n["nn_spatial_hidden"][1], activation="gelu")(h)
         h = BatchNormalization()(h)
 
         # Temporal pathway: expand the scalar into an equally-sized encoding
-        t = Dense(64, activation="gelu")(time_in)
-        t = Dense(256, activation="gelu")(t)
+        t = Dense(cfg_n["nn_temporal_hidden"][0], activation="gelu")(time_in)
+        t = Dense(cfg_n["nn_temporal_hidden"][1], activation="gelu")(t)
 
         # Merge and decode
         merged = Concatenate()([h, t])  # (batch, 512)
-        x = Dense(256, activation="gelu")(merged)
+        x = Dense(cfg_n["nn_decoder_hidden"][0], activation="gelu")(merged)
         x = BatchNormalization()(x)
-        x = Dropout(0.1)(x)
-        x = Dense(512, activation="gelu")(x)
+        x = Dropout(cfg_n["dropout"])(x)
+        x = Dense(cfg_n["nn_decoder_hidden"][1], activation="gelu")(x)
         x = BatchNormalization()(x)
         # softplus keeps output non-negative.  The tail floor (softplus never
         # reaches 0) is handled by the sparse_mse loss below, which adds an
@@ -341,7 +321,7 @@ class NN:
             mse = tf.reduce_mean(tf.square(y_pred - y_true))
             zero_mask = tf.cast(tf.equal(y_true, 0.0), tf.float32)
             tail_penalty = tf.reduce_mean(zero_mask * tf.square(y_pred))
-            return mse + 2.0 * tail_penalty
+            return mse + cfg_n["tail_penalty_weight"] * tail_penalty
 
         modell_nn.compile(
             optimizer=Adam(learning_rate=cfg_t["learning_rate_nn"]),
@@ -352,15 +332,15 @@ class NN:
         callbacks = [
             keras.callbacks.EarlyStopping(
                 monitor="val_loss",
-                patience=30,
+                patience=cfg_t["patience_early_stop"],
                 restore_best_weights=True,
                 verbose=1,
             ),
             keras.callbacks.ReduceLROnPlateau(
                 monitor="val_loss",
-                factor=0.5,
-                patience=15,
-                min_lr=1e-6,
+                factor=cfg_t["reduce_lr_factor"],
+                patience=cfg_t["patience_reduce_lr"],
+                min_lr=cfg_t["min_lr"],
                 verbose=1,
             ),
             keras.callbacks.ModelCheckpoint(
@@ -371,23 +351,23 @@ class NN:
             ),
         ]
         modell_nn.fit(
-            self.X_train,
-            self.y_train,
+            X_train,
+            y_train,
             epochs=epoch,
             batch_size=cfg_t["batch_size_nn"],
             verbose=2,
-            validation_split=0.1,
+            validation_split=cfg_t["validation_split"],
             shuffle=True,
             callbacks=callbacks,
         )
-        evaluation = modell_nn.evaluate(self.X_train, self.y_train, verbose=0)
-        print(evaluation)
+        evaluation = modell_nn.evaluate(X_train, y_train, verbose=0)
+        logger.info("Train evaluation: %s", evaluation)
         return modell_nn
 
-    def predict_model_test(self, modell_nn: object) -> np.ndarray:
+    def predict_model_test(self, modell_nn: keras.Model) -> np.ndarray:
         return modell_nn.predict(self.X_test)
 
-    def predict_model_train(self, modell_nn: object) -> np.ndarray:
+    def predict_model_train(self, modell_nn: keras.Model) -> np.ndarray:
         return modell_nn.predict(self.X_train)
 
     @staticmethod
@@ -419,7 +399,7 @@ class NN:
         df_ana_test: pd.DataFrame,
     ) -> None:
         df_sim_test = df_sim_processing_test.drop(columns="time")
-        positions = df_sim_test.iloc[time].values
+        positions = np.asarray(df_sim_test.iloc[time].values, dtype=np.float64)
         counts, bin_edges = np.histogram(positions, bins=100, density=True)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
         x_cols = df_ana_test.columns.values.astype(float)
@@ -445,7 +425,7 @@ class NN:
         df_ana_train: pd.DataFrame,
     ) -> None:
         df_sim_train = df_sim_processing_train.drop(columns="time")
-        positions = df_sim_train.iloc[time].values
+        positions = np.asarray(df_sim_train.iloc[time].values, dtype=np.float64)
         counts, bin_edges = np.histogram(positions, bins=100, density=True)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
         x_cols = df_ana_train.columns.values.astype(float)
@@ -489,10 +469,8 @@ class NN:
             histograms are dominated by finite-particle shot noise whose amplitude
             can be comparable to the true step-to-step PDF change.
         """
-        assert self.x_grid is not None, "Call data_prep() first to set x_grid."
-
         particle_cols = [c for c in df_sim.columns if c != "time"]
-        times = df_sim["time"].values.astype(np.float64)
+        times = np.asarray(df_sim["time"], dtype=np.float64)
 
         # Raw timestep between consecutive saved rows
         self.dt_scale = float(np.median(np.diff(times)))
@@ -545,13 +523,17 @@ class NN:
         rollout respects the governing PDE and generalises to future times.
         Returns the bare backbone (Sequential) for easy save/load.
         """
-        assert self.X_prop is not None, "Call build_propagator_dataset() first."
+        X_prop = self.X_prop
+        y_prop = self.y_prop
+        assert X_prop is not None, "Call build_propagator_dataset() first."
+        assert y_prop is not None, "Call build_propagator_dataset() first."
 
-        n_input = self.X_prop.shape[1]  # n_bins + 1
-        n_output = self.y_prop.shape[1]  # n_bins
+        n_input = X_prop.shape[1]  # n_bins + 1
+        n_output = y_prop.shape[1]  # n_bins
 
         cfg_t = _SETTINGS["training"]
         cfg_p = _SETTINGS["physics"]
+        cfg_n = _SETTINGS["network"]
         if epoch is None:
             epoch = cfg_t["epochs_propagator"]
 
@@ -562,21 +544,21 @@ class NN:
         dt_b = inp_b[:, -1:]  # (batch, 1)      — normalised dt
 
         # Spatial pathway
-        h_b = Dense(256, activation="gelu")(hist_b)
+        h_b = Dense(cfg_n["prop_spatial_hidden"][0], activation="gelu")(hist_b)
         h_b = BatchNormalization()(h_b)
-        h_b = Dense(256, activation="gelu")(h_b)
+        h_b = Dense(cfg_n["prop_spatial_hidden"][1], activation="gelu")(h_b)
         h_b = BatchNormalization()(h_b)
 
         # Temporal pathway
-        dt_enc = Dense(32, activation="gelu")(dt_b)
-        dt_enc = Dense(256, activation="gelu")(dt_enc)
+        dt_enc = Dense(cfg_n["prop_temporal_hidden"][0], activation="gelu")(dt_b)
+        dt_enc = Dense(cfg_n["prop_temporal_hidden"][1], activation="gelu")(dt_enc)
 
         # Merge and decode
         merged_b = Concatenate()([h_b, dt_enc])
-        x_b = Dense(256, activation="gelu")(merged_b)
+        x_b = Dense(cfg_n["prop_decoder_hidden"][0], activation="gelu")(merged_b)
         x_b = BatchNormalization()(x_b)
-        x_b = Dropout(0.1)(x_b)
-        x_b = Dense(512, activation="gelu")(x_b)
+        x_b = Dropout(cfg_n["dropout"])(x_b)
+        x_b = Dense(cfg_n["prop_decoder_hidden"][1], activation="gelu")(x_b)
         x_b = BatchNormalization()(x_b)
         # Residual skip-connection: predict the CHANGE Δp, then add it to the
         # input histogram.  With random initialisation Δp ≈ 0, so the natural
@@ -608,26 +590,26 @@ class NN:
         callbacks = [
             keras.callbacks.EarlyStopping(
                 monitor="val_mse",
-                patience=30,
+                patience=cfg_t["patience_early_stop"],
                 restore_best_weights=True,
                 verbose=1,
             ),
             keras.callbacks.ReduceLROnPlateau(
                 monitor="val_mse",
-                factor=0.5,
-                patience=15,
-                min_lr=1e-6,
+                factor=cfg_t["reduce_lr_factor"],
+                patience=cfg_t["patience_reduce_lr"],
+                min_lr=cfg_t["min_lr"],
                 verbose=1,
             ),
             _BackboneSaver(backbone, "./keras_model/modell_propagator.keras"),
         ]
         model.fit(
-            self.X_prop,
-            self.y_prop,
+            X_prop,
+            y_prop,
             epochs=epoch,
             batch_size=cfg_t["batch_size_propagator"],
             verbose=2,
-            validation_split=0.1,
+            validation_split=cfg_t["validation_split"],
             shuffle=True,
             callbacks=callbacks,
         )
@@ -635,7 +617,7 @@ class NN:
 
     def rollout(
         self,
-        model: object,
+        model: keras.Model,
         hist_start: np.ndarray,
         n_steps: int,
     ) -> np.ndarray:
@@ -668,12 +650,15 @@ class NN:
             2.0 * float(cfg_p["Dt"]) * float(cfg_p["delta"]) * float(cfg_p["timestep"])
         )
 
-        dx = float(self.x_grid[1] - self.x_grid[0])
+        x_grid = self.x_grid
+        dt_scale = self.dt_scale
+        assert dt_scale is not None, "Call build_propagator_dataset() first."
+        dx = float(x_grid[1] - x_grid[0])
         dt_norm = np.array([[1.0]], dtype=np.float32)
 
         # Seed analytic state from the starting histogram.
-        exp_mean = float(np.sum(self.x_grid * hist_start) * dx)
-        exp_var = float(np.sum((self.x_grid - exp_mean) ** 2 * hist_start) * dx)
+        exp_mean = float(np.sum(x_grid * hist_start) * dx)
+        exp_var = float(np.sum((x_grid - exp_mean) ** 2 * hist_start) * dx)
 
         predictions = []
         for _ in range(n_steps):
@@ -700,7 +685,8 @@ class NN:
             # ── NN prediction from clean reference ─────────────────────────────
             x_in = np.concatenate([h_ref.reshape(1, -1), dt_norm], axis=1)
             h_pred = model.predict(x_in, verbose=0).astype(np.float32)[0]
-            h_pred = gaussian_filter1d(h_pred, sigma=4.0).astype(np.float32)
+            sigma = float(_SETTINGS["training"]["rollout_smooth_sigma"])
+            h_pred = gaussian_filter1d(h_pred, sigma=sigma).astype(np.float32)
             h_pred = np.clip(h_pred, 0.0, None)
             integral = float(np.sum(h_pred) * dx)
             if integral > 0:
@@ -753,8 +739,7 @@ class NN:
         ana_indices = [min(start_step + int(idx), max_ana_idx) for idx in indices]
         scaling = _SETTINGS["physics"]["delta"]
         subplot_titles = [
-            f"t = {int(df_ana.index[ai])} (τ = {int(df_ana.index[ai]) * scaling:.2f})"
-            for ai in ana_indices
+            f"τ = {int(df_ana.index[ai]) * scaling:.2f}" for ai in ana_indices
         ]
         fig = make_subplots(
             rows=1,
@@ -789,6 +774,10 @@ class NN:
             )
         fig.update_xaxes(title_text="x")
         fig.update_yaxes(title_text="Density", col=1)
+        fig.update_layout(
+            margin=dict(t=60),
+            font=dict(size=13),
+        )
         fig.write_html("./figures/comparison_propagator.html")
-        fig.write_image("./figures/comparison_propagator.png")
+        fig.write_image("./figures/comparison_propagator.png", width=1100, height=420)
         fig.show()

@@ -1,0 +1,9 @@
+# Compiled artefacts — Docker rebuilds from source inside the container
+code/*.o
+code/*.out
+
+# Simulation output — mounted at runtime via -v, never baked into the image
+data/
+
+# Docs
+README.md

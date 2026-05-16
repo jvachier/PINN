@@ -1,3 +1,4 @@
+import logging
 import os.path as path
 import pickle
 import tomllib
@@ -9,13 +10,19 @@ import tensorflow as tf
 from keras.models import load_model
 from modules import data_analytic, data_preparation, neural_network
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 _SETTINGS_PATH = Path(__file__).parent / "settings.toml"
 with open(_SETTINGS_PATH, "rb") as _f:
     _SETTINGS = tomllib.load(_f)
 
 tf.config.set_soft_device_placement(True)
 
-binary = True
+binary = _SETTINGS["data"]["use_binary"]
 
 
 def main() -> None:
@@ -38,7 +45,7 @@ def main() -> None:
         df_simulation = data.readdata()
 
     # Analytical results
-    analytic = data_analytic.Analytic(three_up, df_simulation)
+    analytic = data_analytic.Analytic(df_simulation)
 
     if path.isfile("./data/analytic_data.parquet") is False:
         df_analytic = analytic.analytic()
@@ -118,7 +125,7 @@ def main() -> None:
     # Seed the rollout from ~25% of the timeline so we can observe clear
     # temporal evolution (drift + broadening) over a long horizon.
     # e.g. at τ ≈ 2.5 the Gaussian is narrow at x≈2.5; by τ=10 it is broad at x≈10.
-    seed_idx = len(df_ana_chrono) // 4
+    seed_idx = int(len(df_ana_chrono) * _SETTINGS["training"]["rollout_seed_frac"])
     x_fine = df_ana_chrono.columns.values.astype(np.float64)
     hist_seed = np.interp(
         nn.x_grid, x_fine, df_ana_chrono.iloc[seed_idx].values
@@ -133,7 +140,7 @@ def main() -> None:
         predictions=predictions,
         df_ana=df_analytic,
         start_step=start_step,
-        n_steps=5,
+        n_steps=_SETTINGS["training"]["comparison_n_steps"],
     )
 
 

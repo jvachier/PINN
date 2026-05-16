@@ -11,17 +11,22 @@ predicts the PDF at future times without any further simulation.
 
 The position $x(t)$ of a particle follows the Langevin equation:
 
-$$dx = v_s \, dt + \sqrt{2 D_t \, dt} \, \zeta(t)$$
+$$\frac{d}{dt}x = v_s + \sqrt{2 D_t} \, \xi(t)$$
 
 where $v_s$ is the drift velocity, $D_t$ is the translational diffusion coefficient, and
-$\zeta(t)$ is Gaussian white noise. The corresponding Fokker–Planck equation for the PDF
-$p(x,t)$ is:
+$`\langle\tilde{\xi}_{i}(\tilde{t}')\tilde{\xi}_{j}(\tilde{t})\rangle = \delta_{ij}\delta(\tilde{t}'-\tilde{t})`$ is a Gaussian white noise.
 
-$$\frac{\partial p}{\partial t} + v_s \frac{\partial p}{\partial x} = D_t \frac{\partial^2 p}{\partial x^2}$$
+The Langevin equation allows us to express the probability of finding a particle at position
+$x$ at a given time $t$ through the Fokker–Planck equation, which describes the evolution of
+the probability density function $P(x, t \mid x_0, t_0)$, with the initial condition
+$P(x, t{=}t_0 \mid x_0, t_0) = \delta(x - x_0)$.
+To simplify the notation, we write $P(x, t) = P(x, t \mid x_0, t_0)$ and arrive at:
+
+$$\frac{\partial P}{\partial t} = -v_s \frac{\partial P}{\partial x} +  D_t \frac{\partial^2 P}{\partial x^2}$$
 
 which has the analytic solution:
 
-$$p(x,t) = \frac{1}{\sqrt{4\pi D_t t}} \exp\!\left(-\frac{(x - v_s t)^2}{4 D_t t}\right)$$
+$$P(x,t) = \frac{1}{\sqrt{4\pi D_t t}} \exp\!\left(-\frac{(x - v_s t)^2}{4 D_t t}\right)$$
 
 ---
 
@@ -135,4 +140,51 @@ neural_network    →  PDF predictor  (histogram + time → PDF)
                   →  FP propagator  (histogram_t + Δt → histogram_{t+Δt})
 rollout           →  autoregressive future PDF prediction
 ```
+
+---
+
+## Results
+
+All figures are written to `src/Neural_Network_python/code/figures/` as `.png` (static) and `.html` (interactive).
+
+### Figure 1 — PDF Predictor: Training set
+
+The neural network (red) learns to reproduce the analytic Fokker–Planck Gaussian (blue) from
+the noisy simulation histogram (orange bars) on the training time-steps.
+
+<figure>
+  <img src="src/Neural_Network_python/code/figures/comparison_nn_sim_ana_train.png"
+       alt="PDF predictor on training set" width="680">
+  <figcaption><b>Figure 1:</b> PDF predicted by the neural network (red) vs. the analytic
+  solution (blue) and simulation histogram (orange) at a representative training time-step.</figcaption>
+</figure>
+
+---
+
+### Figure 2 — PDF Predictor: Test set
+
+Generalisation to held-out time-steps unseen during training.
+
+<figure>
+  <img src="src/Neural_Network_python/code/figures/comparison_nn_sim_ana_test.png"
+       alt="PDF predictor on test set" width="680">
+  <figcaption><b>Figure 2:</b> Same comparison as Figure 1 but on a held-out test time-step,
+  confirming that the model generalises beyond the training distribution.</figcaption>
+</figure>
+
+---
+
+### Figure 3 — Fokker–Planck Propagator: Autoregressive rollout
+
+The physics-constrained propagator predicts the PDF at five future times purely from the
+initial distribution, without any further simulation data. The dashed red curve (Propagator)
+tracks the analytic Gaussian (blue) across the full rollout window.
+
+<figure>
+  <img src="src/Neural_Network_python/code/figures/comparison_propagator.png"
+       alt="Propagator autoregressive rollout" width="900">
+  <figcaption><b>Figure 3:</b> Autoregressive rollout of the Fokker–Planck propagator (dashed red)
+  at five future time snapshots τ ≈ 2.5 → 10, compared to the analytic Gaussian (blue).
+  The propagator receives no simulation input beyond the initial histogram.</figcaption>
+</figure>
 

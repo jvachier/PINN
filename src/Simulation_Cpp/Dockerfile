@@ -21,7 +21,7 @@ RUN make all \
 FROM ubuntu:24.04 AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libomp5-14 \
+        libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /simulation

@@ -1,5 +1,5 @@
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -13,24 +13,19 @@ with open(_SETTINGS_PATH, "rb") as _f:
 
 @dataclass(slots=True)
 class Analytic:
-    parameter_path: str
     data: pd.DataFrame
-    x: np.array = None
-    scaling_time: float = None
-    drift: float = None
-    diffusion: float = None
+    x: np.ndarray = field(init=False)
+    scaling_time: float = field(init=False)
+    drift: float = field(init=False)
+    diffusion: float = field(init=False)
 
     def __post_init__(self):
         cfg = _SETTINGS["analytic"]
         self.x = np.arange(cfg["x_min"], cfg["x_max"], cfg["x_step"])
-        with open(
-            self.parameter_path + "/Simulation_Cpp/code/parameter.txt"
-        ) as file_data:
-            for line in file_data:
-                parameters = line.split()
-        self.scaling_time = float(parameters[0])
-        self.drift = float(parameters[3])
-        self.diffusion = float(parameters[2])
+        cfg_p = _SETTINGS["physics"]
+        self.scaling_time = float(cfg_p["delta"])
+        self.drift = float(cfg_p["vs"])
+        self.diffusion = float(cfg_p["Dt"])
 
     def analytic(self) -> pd.DataFrame:
         list = []
@@ -40,7 +35,7 @@ class Analytic:
                 list.append(a)
         list_array = np.array(list)
         analytic_pd = pd.DataFrame(list_array, self.data["time"][1:])
-        analytic_pd.columns = self.x
+        analytic_pd.columns = pd.Index(self.x)
         return analytic_pd
 
     def _funct(self, t: float):
@@ -55,7 +50,7 @@ class Analytic:
 
     def comparison(self, time: int) -> None:
         new = self.data.loc[:, self.data.columns != "time"]
-        positions = new.iloc[time].values
+        positions = np.asarray(new.iloc[time].values, dtype=np.float64)
         counts, bin_edges = np.histogram(positions, bins=100, density=True)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
         a = self._funct(self.data["time"][time])

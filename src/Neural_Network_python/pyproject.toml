@@ -30,6 +30,8 @@ dev = [
     "ruff>=0.2.1",
     "pre-commit>=3.7.0",
     "cpplint>=1.6.1",
+    "pytest>=8.0.0",
+    "mypy>=1.10.0",
 ]
 
 [build-system]

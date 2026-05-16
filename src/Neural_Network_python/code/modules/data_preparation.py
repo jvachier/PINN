@@ -1,8 +1,14 @@
+import tomllib
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import polars as pl
+
+_SETTINGS_PATH = Path(__file__).parent.parent / "settings.toml"
+with open(_SETTINGS_PATH, "rb") as _f:
+    _SETTINGS = tomllib.load(_f)
 
 
 @dataclass(slots=True)
@@ -44,13 +50,7 @@ class PrepData:
             self.simulation_path + "/Simulation_Cpp/data/simulation.bin", "rb"
         ) as f:
             file_binary = f.read()
-        # Read parameter file to get the total number of particles
-        with open(
-            self.simulation_path + "/Simulation_Cpp/code/parameter.txt"
-        ) as file_data:
-            for line in file_data:
-                parameters = line.split()
-        N_particles = int(parameters[1])
+        N_particles = _SETTINGS["physics"]["particles"]
         # Preparing the type
         list_type = []
         list_type.append(("time", "int32"))

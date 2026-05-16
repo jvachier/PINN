@@ -12,6 +12,19 @@ x_step =   0.01  # Grid spacing for the analytic solution (analytic_data.parquet
 n_bins           = 600
 train_test_split = 0.9    # Fraction of time-steps used for training
 
+# Dense layer widths for the direct NN (nn_model).
+nn_spatial_hidden  = [512, 256]   # spatial encoder widths
+nn_temporal_hidden = [64, 256]    # temporal encoder widths
+nn_decoder_hidden  = [256, 512]   # merged decoder widths
+
+# Dense layer widths for the propagator backbone (nn_model_propagator).
+prop_spatial_hidden  = [256, 256] # spatial encoder widths
+prop_temporal_hidden = [32, 256]  # temporal encoder widths
+prop_decoder_hidden  = [256, 512] # merged decoder widths
+
+dropout            = 0.1          # Dropout rate used in both models
+tail_penalty_weight = 2.0         # Weight of the zero-target tail penalty in sparse_mse
+
 [training]
 epochs_nn             = 300
 batch_size_nn         = 32
@@ -23,14 +36,34 @@ batch_size_propagator = 32
 # Larger multi_step trains on longer gaps → better long-horizon rollout.
 multi_step = 15
 
+validation_split  = 0.1   # Fraction of training data used for validation
+
+# Early-stopping and learning-rate schedule shared by both models.
+patience_early_stop = 30
+patience_reduce_lr  = 15
+reduce_lr_factor    = 0.5
+min_lr              = 1e-6
+
+# Rollout settings.
+rollout_smooth_sigma = 4.0   # Gaussian smoothing σ (bins) applied after each step
+rollout_seed_frac    = 0.25  # Fraction of timeline used as rollout seed start
+comparison_n_steps   = 5     # Number of panels in comparison_propagator plot
+
+[data]
+use_binary = true   # Read simulation data from .bin (true) or .csv (false)
+
 [physics]
 # Fokker-Planck coefficients per saved snapshot interval.
-# Derived from parameter.txt: drift_eff = vs*delta*timestep, diff_eff = delta*Dt*timestep.
-# Keep in sync with parameter.txt when you change simulation parameters.
-delta    = 1e-3   # noise amplitude (matches parameter.txt)
-Dt       = 1.0    # diffusion coefficient in the SDE
-vs       = 1.0    # drift velocity
-timestep = 10     # saved-step interval (simulation steps per snapshot)
+# These values are the single source of truth — edit here, then run
+# `make gen-params` to regenerate Simulation_Cpp/code/parameter.txt.
+delta      = 1e-3   # noise amplitude / integration time step
+Dt         = 1.0    # diffusion coefficient in the SDE
+vs         = 1.0    # drift velocity
+timestep   = 10     # saved-step interval (simulation steps per snapshot)
+# Simulation domain parameters (written to parameter.txt by gen_params.py).
+particles  = 10000  # number of simulated particles
+wall       = 300.0  # reflecting wall position
+total_time = 10000  # total number of simulation steps
 # Weight of the Fokker-Planck residual relative to MSE.
 # 0.0 = pure data; increase if rollout drifts from analytic.
 weight   = 0.1

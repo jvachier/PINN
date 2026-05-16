@@ -10,9 +10,13 @@ repos:
       - id: end-of-file-fixer
         files: ^src/Neural_Network_python/
       - id: check-yaml
+      - id: check-toml
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=5000]
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: [--branch, main]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.7
@@ -24,3 +28,29 @@ repos:
       # Formatter
       - id: ruff-format
         files: ^src/Neural_Network_python/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        files: ^src/Neural_Network_python/
+        args: [--ignore-missing-imports]
+        additional_dependencies:
+          - numpy
+          - pandas-stubs
+
+  - repo: local
+    hooks:
+      - id: cpplint
+        name: cpplint
+        entry: uv run --directory src/Neural_Network_python cpplint
+        language: system
+        files: ^src/Simulation_Cpp/code/.*\.(cpp|h)$
+        pass_filenames: true
+
+      - id: pytest
+        name: pytest
+        entry: uv run --directory src/Neural_Network_python pytest code/tests/ -v
+        language: system
+        pass_filenames: false
+        always_run: true
