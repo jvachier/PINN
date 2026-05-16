@@ -92,5 +92,7 @@ gen-params:
 test:
 	$(info [test] Running Python test suite...)
 	uv run --directory $(NN_DIR) pytest code/tests/ -v
-	$(info [test] Running C++ test suite...)
+
+sim-test:
+	$(info [sim] Running C++ test suite...)
 	$(MAKE) -C $(SIM_DIR)/code test
