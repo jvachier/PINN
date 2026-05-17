@@ -188,7 +188,7 @@ Generalisation to held-out time-steps unseen during training.
 
 ---
 
-### Figure 3 — Fokker–Planck Propagator: Autoregressive rollout
+### Figure 3 — Propagator: Rollout with Analytic Teacher Forcing
 
 The physics-constrained propagator autoregressively predicts the PDF at five future times:
 each step's predicted histogram is fed back as input for the next step, with no additional
@@ -198,7 +198,7 @@ tracks the analytic Gaussian (blue) across the full rollout window.
 <figure>
   <img src="src/Neural_Network_python/code/figures/comparison_propagator.png"
        alt="Propagator autoregressive rollout" width="900">
-  <figcaption><b>Figure 3:</b> Autoregressive rollout of the Fokker–Planck propagator (dashed red)
+  <figcaption><b>Figure 3:</b> Rollout with analytic teacher forcing of the Fokker–Planck propagator (dashed red)
   at five future time snapshots τ ≈ 2.5 → 10, compared to the analytic Gaussian (blue).
   Each predicted histogram is fed back as the input for the next step; no further simulation data is used after the initial snapshot.</figcaption>
 </figure>
