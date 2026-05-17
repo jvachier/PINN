@@ -25,10 +25,10 @@ predicts the PDF at future times without any further simulation.
 
 The position $x(t)$ of a particle follows the Langevin equation:
 
-$$\frac{d}{dt}x = v_s + \sqrt{2 D_t} \, \xi(t)$$
+$$\frac{d}{dt}x = v_s + \sqrt{2 D_t} \, \xi(t),$$
 
 where $v_s$ is the drift velocity, $D_t$ is the translational diffusion coefficient, and
-$`\langle\tilde{\xi}_{i}(\tilde{t}')\tilde{\xi}_{j}(\tilde{t})\rangle = \delta_{ij}\delta(\tilde{t}'-\tilde{t})`$ is a Gaussian white noise.
+$`\langle\tilde{\xi}(\tilde{t}')\tilde{\xi}(\tilde{t})\rangle = \delta(\tilde{t}'-\tilde{t})`$ is a Gaussian white noise.
 
 The Langevin equation allows us to express the probability of finding a particle at position
 $x$ at a given time $t$ through the Fokker–Planck equation, which describes the evolution of
@@ -36,11 +36,11 @@ the probability density function $P(x, t \mid x_0, t_0)$, with the initial condi
 $P(x, t{=}t_0 \mid x_0, t_0) = \delta(x - x_0)$.
 To simplify the notation, we write $P(x, t) = P(x, t \mid x_0, t_0)$ and arrive at:
 
-$$\frac{\partial P}{\partial t} = -v_s \frac{\partial P}{\partial x} +  D_t \frac{\partial^2 P}{\partial x^2}$$
+$$\frac{\partial P}{\partial t} = -v_s \frac{\partial P}{\partial x} +  D_t \frac{\partial^2 P}{\partial x^2},$$
 
 which has the analytic solution:
 
-$$P(x,t) = \frac{1}{\sqrt{4\pi D_t t}} \exp\!\left(-\frac{(x - v_s t)^2}{4 D_t t}\right)$$
+$$P(x,t) = \frac{1}{\sqrt{4\pi D_t (t-t_0)}} \exp\!\left(-\frac{(x - x_0 - v_s (t - t_0))^2}{4 D_t (t - t_0)}\right).$$
 
 ---
 
@@ -188,17 +188,18 @@ Generalisation to held-out time-steps unseen during training.
 
 ---
 
-### Figure 3 — Fokker–Planck Propagator: Autoregressive rollout
+### Figure 3 — Propagator: Rollout with Analytic Teacher Forcing
 
-The physics-constrained propagator predicts the PDF at five future times purely from the
-initial distribution, without any further simulation data. The dashed red curve (Propagator)
+The physics-constrained propagator autoregressively predicts the PDF at five future times:
+each step's predicted histogram is fed back as input for the next step, with no additional
+simulation data required after the first snapshot. The dashed red curve (Propagator)
 tracks the analytic Gaussian (blue) across the full rollout window.
 
 <figure>
   <img src="src/Neural_Network_python/code/figures/comparison_propagator.png"
        alt="Propagator autoregressive rollout" width="900">
-  <figcaption><b>Figure 3:</b> Autoregressive rollout of the Fokker–Planck propagator (dashed red)
+  <figcaption><b>Figure 3:</b> Rollout with analytic teacher forcing of the Fokker–Planck propagator (dashed red)
   at five future time snapshots τ ≈ 2.5 → 10, compared to the analytic Gaussian (blue).
-  The propagator receives no simulation input beyond the initial histogram.</figcaption>
+  Each predicted histogram is fed back as the input for the next step; no further simulation data is used after the initial snapshot.</figcaption>
 </figure>
 
