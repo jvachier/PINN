@@ -28,7 +28,7 @@ The position $x(t)$ of a particle follows the Langevin equation:
 $$\frac{d}{dt}x = v_s + \sqrt{2 D_t} \, \xi(t)$$
 
 where $v_s$ is the drift velocity, $D_t$ is the translational diffusion coefficient, and
-$`\langle\tilde{\xi}_{i}(\tilde{t}')\tilde{\xi}_{j}(\tilde{t})\rangle = \delta_{ij}\delta(\tilde{t}'-\tilde{t})`$ is a Gaussian white noise.
+$`\langle\tilde{\xi}(\tilde{t}')\tilde{\xi}(\tilde{t})\rangle = \delta(\tilde{t}'-\tilde{t})`$ is a Gaussian white noise.
 
 The Langevin equation allows us to express the probability of finding a particle at position
 $x$ at a given time $t$ through the Fokker–Planck equation, which describes the evolution of
@@ -190,8 +190,9 @@ Generalisation to held-out time-steps unseen during training.
 
 ### Figure 3 — Fokker–Planck Propagator: Autoregressive rollout
 
-The physics-constrained propagator predicts the PDF at five future times purely from the
-initial distribution, without any further simulation data. The dashed red curve (Propagator)
+The physics-constrained propagator autoregressively predicts the PDF at five future times:
+each step's predicted histogram is fed back as input for the next step, with no additional
+simulation data required after the first snapshot. The dashed red curve (Propagator)
 tracks the analytic Gaussian (blue) across the full rollout window.
 
 <figure>
@@ -199,6 +200,6 @@ tracks the analytic Gaussian (blue) across the full rollout window.
        alt="Propagator autoregressive rollout" width="900">
   <figcaption><b>Figure 3:</b> Autoregressive rollout of the Fokker–Planck propagator (dashed red)
   at five future time snapshots τ ≈ 2.5 → 10, compared to the analytic Gaussian (blue).
-  The propagator receives no simulation input beyond the initial histogram.</figcaption>
+  Each predicted histogram is fed back as the input for the next step; no further simulation data is used after the initial snapshot.</figcaption>
 </figure>
 
