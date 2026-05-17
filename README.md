@@ -25,7 +25,7 @@ predicts the PDF at future times without any further simulation.
 
 The position $x(t)$ of a particle follows the Langevin equation:
 
-$$\frac{d}{dt}x = v_s + \sqrt{2 D_t} \, \xi(t)$$
+$$\frac{d}{dt}x = v_s + \sqrt{2 D_t} \, \xi(t),$$
 
 where $v_s$ is the drift velocity, $D_t$ is the translational diffusion coefficient, and
 $`\langle\tilde{\xi}(\tilde{t}')\tilde{\xi}(\tilde{t})\rangle = \delta(\tilde{t}'-\tilde{t})`$ is a Gaussian white noise.
@@ -36,11 +36,11 @@ the probability density function $P(x, t \mid x_0, t_0)$, with the initial condi
 $P(x, t{=}t_0 \mid x_0, t_0) = \delta(x - x_0)$.
 To simplify the notation, we write $P(x, t) = P(x, t \mid x_0, t_0)$ and arrive at:
 
-$$\frac{\partial P}{\partial t} = -v_s \frac{\partial P}{\partial x} +  D_t \frac{\partial^2 P}{\partial x^2}$$
+$$\frac{\partial P}{\partial t} = -v_s \frac{\partial P}{\partial x} +  D_t \frac{\partial^2 P}{\partial x^2},$$
 
 which has the analytic solution:
 
-$$P(x,t) = \frac{1}{\sqrt{4\pi D_t t}} \exp\!\left(-\frac{(x - v_s t)^2}{4 D_t t}\right)$$
+$$P(x,t) = \frac{1}{\sqrt{4\pi D_t (t-t_0)}} \exp\!\left(-\frac{(x - x_0 - v_s (t - t_0))^2}{4 D_t (t - t_0)}\right).$$
 
 ---
 
